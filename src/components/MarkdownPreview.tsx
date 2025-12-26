@@ -1,5 +1,5 @@
 // src/components/MarkdownPreview.tsx
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -26,6 +26,49 @@ const MermaidBlock = ({ code }: { code: string }) => {
     }
   }, [code]);
   return <div ref={ref} className="mermaid" />;
+};
+
+const CodeBlock: React.FC<{
+  className?: string;
+  children: React.ReactNode;
+}> = ({ className, children }) => {
+  const codeText = String(children).replace(/\n$/, "");
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(codeText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (_e) {
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = codeText;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error("copy failed", err);
+      }
+      document.body.removeChild(ta);
+    }
+  };
+
+  return (
+    <div className="code-block">
+      <div className="code-toolbar">
+        <button type="button" className="copy-btn" onClick={handleCopy}>
+          {copied ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <pre>
+        <code className={className}>{codeText}</code>
+      </pre>
+    </div>
+  );
 };
 
 export const MarkdownPreview: React.FC<Props> = ({ content }) => {
@@ -64,19 +107,16 @@ export const MarkdownPreview: React.FC<Props> = ({ content }) => {
               </a>
             );
           },
-          code({ node, className, children, ...props }) {
+          code({ className, children }) {
             const match = /language-(\w+)/.exec(className || "");
-            const isMermaid = match && match[1] === "mermaid";
+            const lang = match && match[1];
+            const isMermaid = lang === "mermaid";
             if (isMermaid) {
               return (
                 <MermaidBlock code={String(children).replace(/\n$/, "")} />
               );
             }
-            return (
-              <code className={className} {...props}>
-                {children}
-              </code>
-            );
+            return <CodeBlock className={className}>{children}</CodeBlock>;
           },
         }}
       >
