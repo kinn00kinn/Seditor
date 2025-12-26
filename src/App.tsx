@@ -1,38 +1,30 @@
-// src/App.tsx
-import  { useEffect, useRef, useState } from "react";
-import { EditorState } from "@codemirror/state";
-import {
-  EditorView,
-  keymap,
-  lineNumbers,
-  highlightActiveLineGutter,
-} from "@codemirror/view";
-import {
-  defaultKeymap,
-  history,
-  historyKeymap,
-  indentWithTab,
-} from "@codemirror/commands";
-import { searchKeymap, openSearchPanel } from "@codemirror/search";
-import { markdown } from "@codemirror/lang-markdown";
-import {
-  syntaxHighlighting,
-  defaultHighlightStyle,
-} from "@codemirror/language";
-
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { EditorView } from "@codemirror/view";
+import { AnimatePresence, motion } from "framer-motion";
 import { useFileHandler } from "./hooks/useFileHandler";
-import { MarkdownPreview } from "./components/MarkdownPreview";
-import { FaFolderOpen, FaSave, FaCode, FaEye, FaPrint } from "react-icons/fa";
+import { useShortcuts } from "./hooks/useShortcuts";
+import { moveLine } from "./utils/editorUtils";
+import { Layout } from "./components/layout/Layout";
+import { Toolbar, ToolbarGroup, ToolbarDivider } from "./components/ui/Toolbar";
+import { Button } from "./components/ui/Button";
+import { Editor } from "./components/editor/Editor";
+import { Preview } from "./components/preview/Preview";
+import { SettingsPanel } from "./components/SettingsPanel";
+import { HelpModal } from "./components/HelpModal";
+import {
+  FaFolderOpen,
+  FaSave,
+  FaCode,
+  FaEye,
+  FaPrint,
+  FaCog,
+  FaArrowUp,
+  FaArrowDown,
+  FaQuestionCircle,
+} from "react-icons/fa";
 import "./App.css";
 
-const editorTheme = EditorView.theme({
-  "&": { height: "100%", fontSize: "16px" },
-  ".cm-scroller": { fontFamily: "'Consolas', 'Monaco', monospace" },
-  ".cm-content": { maxWidth: "100%", paddingBottom: "300px" },
-});
-
 function App() {
-  const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
 
   const {
@@ -47,179 +39,203 @@ function App() {
   } = useFileHandler();
 
   const [mode, setMode] = useState<"edit" | "preview">("edit");
+  const [showSettings, setShowSettings] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [lineWrapEnabled, setLineWrapEnabled] = useState<boolean>(
+    localStorage.getItem("seditor:lineWrap") === "true"
+  );
+  const [overflowFoldEnabled, setOverflowFoldEnabled] = useState<boolean>(
+    localStorage.getItem("seditor:overflowFold") === "true"
+  );
 
-  // --- Actions (Ref pattern for Global shortcuts) ---
-  const actionsRef = useRef({
-    save: async () => {},
-    saveAs: async () => {},
-    toggleMode: () => {},
-    open: async () => {},
-  });
+  const handleEditorInit = useCallback((view: EditorView) => {
+    viewRef.current = view;
+  }, []);
 
-  const performToggle = () => {
+  // --- Actions ---
+  const performToggle = useCallback(() => {
     if (viewRef.current) {
       setDocContent(viewRef.current.state.doc.toString());
     }
     setMode((prev) => (prev === "edit" ? "preview" : "edit"));
-  };
+  }, [setDocContent]);
 
-  const performSave = async () => {
+  const performSave = useCallback(async () => {
     const content = viewRef.current
       ? viewRef.current.state.doc.toString()
       : docContent;
     await saveFile(content);
-  };
+  }, [docContent, saveFile]);
 
-  const performSaveAs = async () => {
+  const performSaveAs = useCallback(async () => {
     const content = viewRef.current
       ? viewRef.current.state.doc.toString()
       : docContent;
     await saveAsFile(content);
-  };
+  }, [docContent, saveAsFile]);
 
-  const performOpen = async () => {
+  const performOpen = useCallback(async () => {
     const content = await openFile();
-    if (content !== null && viewRef.current) {
-      viewRef.current.dispatch({
-        changes: {
-          from: 0,
-          to: viewRef.current.state.doc.length,
-          insert: content,
-        },
-      });
+    if (content !== null) {
+      if (viewRef.current) {
+        viewRef.current.dispatch({
+          changes: {
+            from: 0,
+            to: viewRef.current.state.doc.length,
+            insert: content,
+          },
+        });
+      }
+      setMode("edit"); // Switch to edit mode on open
+    }
+  }, [openFile]);
+
+  const handleMoveLine = (dir: "up" | "down") => {
+    if (viewRef.current) {
+      moveLine(viewRef.current, dir);
     }
   };
 
-  useEffect(() => {
-    actionsRef.current = {
-      save: performSave,
-      saveAs: performSaveAs,
-      toggleMode: performToggle,
-      open: performOpen,
-    };
-  }, [docContent, currentPath, mode]);
+  // --- Shortcuts ---
+  const shortcutActions = useMemo(() => ({
+    save: performSave,
+    saveAs: performSaveAs,
+    open: performOpen,
+    toggleMode: performToggle,
+    print: () => window.print(),
+  }), [performSave, performSaveAs, performOpen, performToggle]);
 
-  // --- Global Shortcut (Capture Phase) ---
+  useShortcuts(shortcutActions);
+
+  // --- Settings Listener ---
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        const key = e.key.toLowerCase();
-        if (key === "e") {
-          e.preventDefault();
-          e.stopPropagation();
-          actionsRef.current.toggleMode();
-        } else if (key === "s") {
-          e.preventDefault();
-          if (e.shiftKey) actionsRef.current.saveAs();
-          else actionsRef.current.save();
-        } else if (key === "o") {
-          e.preventDefault();
-          actionsRef.current.open();
-        } else if (key === "p") {
-          e.preventDefault();
-          window.print();
-        }
-      }
+    const handler = (e: any) => {
+      if (e?.detail?.lineWrap !== undefined)
+        setLineWrapEnabled(Boolean(e.detail.lineWrap));
+      if (e?.detail?.overflowFold !== undefined)
+        setOverflowFoldEnabled(Boolean(e.detail.overflowFold));
     };
-    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    window.addEventListener("seditor:settingsChanged", handler as EventListener);
     return () =>
-      window.removeEventListener("keydown", handleKeyDown, { capture: true });
+      window.removeEventListener("seditor:settingsChanged", handler as EventListener);
   }, []);
 
-  // --- Editor Setup ---
-  useEffect(() => {
-    if (mode === "preview") return;
-    if (!editorRef.current) return;
-
-    const state = EditorState.create({
-      doc: docContent,
-      extensions: [
-        lineNumbers(),
-        highlightActiveLineGutter(),
-        history(),
-        markdown(),
-        editorTheme,
-        syntaxHighlighting(defaultHighlightStyle),
-        keymap.of([
-          indentWithTab,
-          {
-            key: "Mod-f",
-            run: () => {
-              openSearchPanel(viewRef.current!);
-              return true;
-            },
-            preventDefault: true,
-          },
-          ...searchKeymap,
-          ...defaultKeymap,
-          ...historyKeymap,
-        ]),
-        EditorView.updateListener.of((u) => {
-          if (u.docChanged) setIsDirty(true);
-        }),
-      ],
-    });
-
-    const view = new EditorView({ state, parent: editorRef.current });
-    viewRef.current = view;
-    view.focus();
-    return () => view.destroy();
-  }, [mode]);
-
   return (
-    <div className="app-container">
-      <div className="toolbar">
-        <div className="toolbar-group">
-          <button
-            onClick={() => actionsRef.current.open()}
-            title="Open (Ctrl+O)"
-          >
-            <FaFolderOpen />
-          </button>
-          <button
-            onClick={() => actionsRef.current.save()}
-            title="Save (Ctrl+S)"
-            className={isDirty ? "dirty" : ""}
-          >
-            <FaSave />
-          </button>
-          <span className="file-name">
-            {currentPath ? currentPath.split(/[\\/]/).pop() : "Untitled"}
-            {isDirty && "*"}
-          </span>
-        </div>
-        <div className="toolbar-group">
-          <button onClick={() => window.print()} title="Print (Ctrl+P)">
-            <FaPrint />
-          </button>
-          <div className="divider" />
-          <button
-            onClick={() => actionsRef.current.toggleMode()}
-            className="mode-btn"
-            title="Toggle Mode (Ctrl+E)"
-          >
-            {mode === "edit" ? (
-              <>
-                <FaCode /> Source
-              </>
-            ) : (
-              <>
-                <FaEye /> Preview
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-      <div className="main-area">
+    <Layout
+      header={
+        <Toolbar>
+          <ToolbarGroup>
+            <Button
+              onClick={performOpen}
+              tooltip="Open (Ctrl+O)"
+              icon={<FaFolderOpen />}
+            />
+            <Button
+              onClick={performSave}
+              tooltip="Save (Ctrl+S)"
+              icon={<FaSave />}
+              className={isDirty ? "text-red-600 hover:text-red-700 hover:bg-red-50" : ""}
+            />
+            <div className="text-sm font-medium text-slate-500 ml-2 select-none">
+              {currentPath ? currentPath.split(/[\\/]/).pop() : "Untitled"}
+              {isDirty && <span className="text-amber-500 ml-1">•</span>}
+            </div>
+          </ToolbarGroup>
+          
+          <ToolbarGroup>
+            <Button
+              onClick={() => handleMoveLine("up")}
+              tooltip="Move line up"
+              icon={<FaArrowUp />}
+              disabled={mode !== "edit"}
+            />
+            <Button
+              onClick={() => handleMoveLine("down")}
+              tooltip="Move line down"
+              icon={<FaArrowDown />}
+              disabled={mode !== "edit"}
+            />
+            <ToolbarDivider />
+             <Button
+              onClick={() => setShowSettings(true)}
+              tooltip="Settings"
+              icon={<FaCog />}
+            />
+            <Button
+              onClick={() => setShowHelp(true)}
+              tooltip="Help & Manual"
+              icon={<FaQuestionCircle />}
+            />
+            <Button
+              onClick={() => window.print()}
+              tooltip="Print (Ctrl+P)"
+              icon={<FaPrint />}
+            />
+            <ToolbarDivider />
+            <Button
+              onClick={performToggle}
+              tooltip="Toggle Mode (Ctrl+E)"
+              variant={mode === "preview" ? "primary" : "ghost"}
+              className="w-28"
+            >
+              {mode === "edit" ? (
+                <>
+                  <FaEye className="mr-2" /> Preview
+                </>
+              ) : (
+                <>
+                  <FaCode className="mr-2" /> Editor
+                </>
+              )}
+            </Button>
+          </ToolbarGroup>
+          
+          <SettingsPanel
+            isOpen={showSettings}
+            onClose={() => setShowSettings(false)}
+          />
+          <HelpModal
+            isOpen={showHelp}
+            onClose={() => setShowHelp(false)}
+           />
+        </Toolbar>
+      }
+    >
+      <AnimatePresence mode="wait" initial={false}>
         {mode === "edit" ? (
-          <div ref={editorRef} className="editor-wrapper" />
+          <motion.div
+            key="edit"
+            className="w-full h-full"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Editor
+              content={docContent}
+              onChange={(val) => {
+                setDocContent(val);
+                setIsDirty(true);
+              }}
+              lineWrap={lineWrapEnabled}
+              overflowFold={overflowFoldEnabled}
+              onViewInit={handleEditorInit}
+            />
+          </motion.div>
         ) : (
-          <div className="preview-wrapper">
-            <MarkdownPreview content={docContent} />
-          </div>
+          <motion.div
+            key="preview"
+            className="w-full h-full overflow-auto"
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Preview content={docContent} />
+          </motion.div>
         )}
-      </div>
-    </div>
+      </AnimatePresence>
+    </Layout>
   );
 }
 

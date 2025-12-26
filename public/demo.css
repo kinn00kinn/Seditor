@@ -1,0 +1,109 @@
+/*
+ * Obsidian CSSスニペット (プレビュー専用)
+ * 目的: 4つの要素(縦棒, インデント, 下線, フォント)で階層構造を明確にする。
+ * 適用範囲: プレビューモード（閲覧モード）のみ。
+ * * ★特徴: ネガティブマージン(margin-left: calc(...))を一切使わず、
+ * padding-leftのみでインデントを制御するため、
+ * 環境によらず全ての縦棒が表示されます。
+ */
+
+/* --- 共通スタイル (プレビューモードのみ) --- */
+.markdown-preview-view h1,
+.markdown-preview-view h2,
+.markdown-preview-view h3,
+.markdown-preview-view h4,
+.markdown-preview-view h5,
+.markdown-preview-view h6 {
+  /* ▼ 縦棒の基本スタイル */
+  border-left-style: solid;
+  border-left-color: var(--text-normal); /* 基本色 (h1,h2,h4,h5,h6で上書き) */
+  
+  /* ▼ リセット: これが重要 */
+  border-top: none;
+  padding-top: 0;
+  margin-left: 0; /* ★ネガティブマージンをリセットし、はみ出させない */
+  padding-bottom: 0.4em; /* 下線とテキストの隙間 */
+  margin-top: 1.5em; /* 基本の余白 */
+  line-height: 1.3;
+}
+
+/* --- h1 (最上位) --- */
+.markdown-preview-view h1 {
+  font-size: 1.8em; /* フォント: 最大 */
+  font-weight: 700; /* フォント: 最も太い */
+  
+  border-left-width: 8px; /* 縦棒: 最も太い */
+  border-left-color: var(--interactive-accent); /* 目立つ色 */
+  
+  padding-left: 0.5em; /* インデント: 浅い */
+  
+  border-bottom: 2px solid var(--background-modifier-border); /* 下線: 太い実線 */
+}
+
+/* --- h2 (章) --- */
+.markdown-preview-view h2 {
+  font-size: 1.6em; /* フォント: 大 */
+  font-weight: 600; /* フォント: 太い */
+  margin-top: 2.5em; /* 上の余白を大きく */
+  
+  border-left-width: 6px; /* 縦棒: 太い */
+  border-left-color: var(--text-accent); /* 目立つ色 */
+  
+  padding-left: 0.8em; /* インデント: h1より深い */
+  
+  border-bottom: 1px solid var(--background-modifier-border); /* 下線: 細い実線 */
+}
+
+/* --- h3 (節) --- */
+.markdown-preview-view h3 {
+  font-size: 1.4em; /* フォント: 中 */
+  font-weight: 600; /* フォント: 太い (h2と同じ) */
+  
+  border-left-width: 4px; /* 縦棒: 中くらい */
+  border-left-color: var(--text-normal); /* 通常色 */
+  
+  padding-left: 1.1em; /* インデント: h2より深い */
+  
+  border-bottom: 1px dotted var(--text-faint); /* 下線: 点線 */
+}
+
+/* --- h4 (項) --- */
+.markdown-preview-view h4 {
+  font-size: 1.2em; /* フォント: やや小 */
+  font-weight: 600; /* フォント: 太い (h3と同じ) */
+  
+  border-left-width: 3px; /* 縦棒: やや細い */
+  border-left-color: var(--text-faint); /* 薄い色 */
+  
+  padding-left: 1.4em; /* インデント: h3より深い */
+  
+  border-bottom: 1px dotted var(--text-faint); /* 下線: 点線 (h3と同じ) */
+}
+
+/* --- h5 --- */
+.markdown-preview-view h5 {
+  font-size: 1.1em; /* フォント: 小 */
+  font-weight: 500; /* フォント: 少し細く */
+  margin-top: 1.0em; /* 余白を詰める */
+  
+  border-left-width: 2px; /* 縦棒: 細い */
+  border-left-color: var(--text-muted); /* さらに薄い色 */
+  
+  padding-left: 1.7em; /* インデント: h4より深い */
+  
+  border-bottom: none; /* 下線: なし */
+}
+
+/* --- h6 --- */
+.markdown-preview-view h6 {
+  font-size: 1.0em; /* フォント: 最小 */
+  font-weight: 500; /* フォント: 少し細く (h5と同じ) */
+  margin-top: 1.0em; /* 余白を詰める */
+  
+  border-left-width: 2px; /* 縦棒: 最も細い (h5と同じ) */
+  border-left-color: var(--text-muted); /* 最も薄い色 (h5と同じ) */
+  
+  padding-left: 2.0em; /* インデント: 最も深い */
+  
+  border-bottom: none; /* 下線: なし */
+}
