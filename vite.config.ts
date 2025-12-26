@@ -29,4 +29,11 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
+  // Externalize Tauri API when bundling for production web build so Rollup
+  // does not try to resolve native Tauri modules.
+  build: {
+    rollupOptions: {
+      external: [/^@tauri-apps\/api(\/.*)?$/],
+    },
+  },
 }));

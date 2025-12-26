@@ -6,6 +6,15 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import mermaid from "mermaid";
 import "katex/dist/katex.min.css"; // KaTeX CSS
+import Prism from "prismjs";
+import "prismjs/components/prism-clike";
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-jsx";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-tsx";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-markup";
+import "prismjs/themes/prism.css";
 
 interface Props {
   content: string;
@@ -34,6 +43,7 @@ const CodeBlock: React.FC<{
 }> = ({ className, children }) => {
   const codeText = String(children).replace(/\n$/, "");
   const [copied, setCopied] = useState(false);
+  const codeRef = useRef<HTMLElement | null>(null);
 
   const handleCopy = async () => {
     try {
@@ -65,16 +75,36 @@ const CodeBlock: React.FC<{
         </button>
       </div>
       <pre>
-        <code className={className}>{codeText}</code>
+        <code ref={codeRef as any} className={className}>
+          {codeText}
+        </code>
       </pre>
     </div>
   );
 };
 
+// highlight after render
+React.useEffect(() => {
+  if (!document) return;
+  try {
+    Prism.highlightAll();
+  } catch (e) {
+    // ignore
+  }
+}, []);
+
 export const MarkdownPreview: React.FC<Props> = ({ content }) => {
   useEffect(() => {
     mermaid.initialize({ startOnLoad: true });
   }, []);
+
+  useEffect(() => {
+    try {
+      Prism.highlightAll();
+    } catch (e) {
+      // ignore
+    }
+  }, [content]);
 
   return (
     <div className="markdown-body">
