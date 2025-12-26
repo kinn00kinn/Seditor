@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { EditorView } from "@codemirror/view";
+import { AnimatePresence, motion } from "framer-motion";
 import { useFileHandler } from "./hooks/useFileHandler";
+import { useShortcuts } from "./hooks/useShortcuts";
+import { moveLine } from "./utils/editorUtils";
 import { Layout } from "./components/layout/Layout";
 import { Toolbar, ToolbarGroup, ToolbarDivider } from "./components/ui/Toolbar";
 import { Button } from "./components/ui/Button";
@@ -42,57 +45,66 @@ function App() {
     localStorage.getItem("seditor:overflowFold") === "true"
   );
 
-  // --- Actions (Ref pattern for Global shortcuts) ---
-  const actionsRef = useRef({
-    save: async () => {},
-    saveAs: async () => {},
-    toggleMode: () => {},
-    open: async () => {},
-  });
+  const handleEditorInit = useCallback((view: EditorView) => {
+    viewRef.current = view;
+  }, []);
 
-  const performToggle = () => {
+  // --- Actions ---
+  const performToggle = useCallback(() => {
     if (viewRef.current) {
       setDocContent(viewRef.current.state.doc.toString());
     }
     setMode((prev) => (prev === "edit" ? "preview" : "edit"));
-  };
+  }, [setDocContent]);
 
-  const performSave = async () => {
+  const performSave = useCallback(async () => {
     const content = viewRef.current
       ? viewRef.current.state.doc.toString()
       : docContent;
     await saveFile(content);
-  };
+  }, [docContent, saveFile]);
 
-  const performSaveAs = async () => {
+  const performSaveAs = useCallback(async () => {
     const content = viewRef.current
       ? viewRef.current.state.doc.toString()
       : docContent;
     await saveAsFile(content);
-  };
+  }, [docContent, saveAsFile]);
 
-  const performOpen = async () => {
+  const performOpen = useCallback(async () => {
     const content = await openFile();
-    if (content !== null && viewRef.current) {
-      viewRef.current.dispatch({
-        changes: {
-          from: 0,
-          to: viewRef.current.state.doc.length,
-          insert: content,
-        },
-      });
+    if (content !== null) {
+      if (viewRef.current) {
+        viewRef.current.dispatch({
+          changes: {
+            from: 0,
+            to: viewRef.current.state.doc.length,
+            insert: content,
+          },
+        });
+      }
+      setMode("edit"); // Switch to edit mode on open
+    }
+  }, [openFile]);
+
+  const handleMoveLine = (dir: "up" | "down") => {
+    if (viewRef.current) {
+      moveLine(viewRef.current, dir);
     }
   };
 
-  useEffect(() => {
-    actionsRef.current = {
-      save: performSave,
-      saveAs: performSaveAs,
-      toggleMode: performToggle,
-      open: performOpen,
-    };
-  }, [docContent, currentPath, mode]);
+  // --- Shortcuts ---
+  const shortcutActions = useMemo(() => ({
+    save: performSave,
+    saveAs: performSaveAs,
+    open: performOpen,
+    toggleMode: performToggle,
+    print: () => window.print(),
+  }), [performSave, performSaveAs, performOpen, performToggle]);
 
+  useShortcuts(shortcutActions);
+
+  // --- Settings Listener ---
   useEffect(() => {
     const handler = (e: any) => {
       if (e?.detail?.lineWrap !== undefined)
@@ -100,93 +112,10 @@ function App() {
       if (e?.detail?.overflowFold !== undefined)
         setOverflowFoldEnabled(Boolean(e.detail.overflowFold));
     };
-    window.addEventListener(
-      "seditor:settingsChanged",
-      handler as EventListener
-    );
+    window.addEventListener("seditor:settingsChanged", handler as EventListener);
     return () =>
-      window.removeEventListener(
-        "seditor:settingsChanged",
-        handler as EventListener
-      );
+      window.removeEventListener("seditor:settingsChanged", handler as EventListener);
   }, []);
-
-  // --- Global Shortcut (Capture Phase) ---
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        const key = e.key.toLowerCase();
-        if (key === "e") {
-          e.preventDefault();
-          e.stopPropagation();
-          actionsRef.current.toggleMode();
-        } else if (key === "s") {
-          e.preventDefault();
-          if (e.shiftKey) actionsRef.current.saveAs();
-          else actionsRef.current.save();
-        } else if (key === "o") {
-          e.preventDefault();
-          actionsRef.current.open();
-        } else if (key === "p") {
-          e.preventDefault();
-          window.print();
-        }
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown, { capture: true });
-    return () =>
-      window.removeEventListener("keydown", handleKeyDown, { capture: true });
-  }, []);
-
-  // Move selected lines up/down
-  const moveLine = (dir: "up" | "down") => {
-    const view = viewRef.current;
-    if (!view) return;
-    const state = view.state;
-    const { from, to } = state.selection.main;
-    const lineFrom = state.doc.lineAt(from);
-    const lineTo = state.doc.lineAt(to === from ? to : to - 1);
-    const start = lineFrom.from;
-    const end = lineTo.to;
-    const selectedText = state.doc.sliceString(start, end);
-
-    if (dir === "up") {
-      if (start === 0) return;
-      const prevLine = state.doc.lineAt(start - 1);
-      const before = state.doc.sliceString(prevLine.from, prevLine.to);
-      view.dispatch({
-        changes: [
-          {
-            from: prevLine.from,
-            to: end,
-            insert: selectedText + "\n" + before,
-          },
-        ],
-        selection: {
-          anchor: prevLine.from,
-          head: prevLine.from + selectedText.length,
-        },
-      });
-    } else {
-      if (end === state.doc.length) return;
-      const nextLine = state.doc.lineAt(end + 1);
-      const after = state.doc.sliceString(nextLine.from, nextLine.to);
-      view.dispatch({
-        changes: [
-          { from: start, to: nextLine.to, insert: after + "\n" + selectedText },
-        ],
-        selection: {
-          anchor: start + after.length + 1,
-          head: start + after.length + 1 + selectedText.length,
-        },
-      });
-    }
-    view.focus();
-  };
-
-  const handleEditorInit = (view: EditorView) => {
-    viewRef.current = view;
-  };
 
   return (
     <Layout
@@ -194,41 +123,40 @@ function App() {
         <Toolbar>
           <ToolbarGroup>
             <Button
-              onClick={() => actionsRef.current.open()}
+              onClick={performOpen}
               tooltip="Open (Ctrl+O)"
               icon={<FaFolderOpen />}
             />
             <Button
-              onClick={() => actionsRef.current.save()}
+              onClick={performSave}
               tooltip="Save (Ctrl+S)"
               icon={<FaSave />}
-              className={isDirty ? "text-red-500" : ""}
+              className={isDirty ? "text-red-600 hover:text-red-700 hover:bg-red-50" : ""}
             />
-            <div className="text-sm font-medium text-slate-600 ml-2">
+            <div className="text-sm font-medium text-slate-500 ml-2 select-none">
               {currentPath ? currentPath.split(/[\\/]/).pop() : "Untitled"}
-              {isDirty && "*"}
+              {isDirty && <span className="text-amber-500 ml-1">•</span>}
             </div>
           </ToolbarGroup>
+          
           <ToolbarGroup>
             <Button
+              onClick={() => handleMoveLine("up")}
+              tooltip="Move line up"
+              icon={<FaArrowUp />}
+              disabled={mode !== "edit"}
+            />
+            <Button
+              onClick={() => handleMoveLine("down")}
+              tooltip="Move line down"
+              icon={<FaArrowDown />}
+              disabled={mode !== "edit"}
+            />
+            <ToolbarDivider />
+             <Button
               onClick={() => setShowSettings(true)}
               tooltip="Settings"
               icon={<FaCog />}
-            />
-            <SettingsPanel
-              isOpen={showSettings}
-              onClose={() => setShowSettings(false)}
-            />
-            <ToolbarDivider />
-            <Button
-              onClick={() => moveLine("up")}
-              tooltip="Move line up"
-              icon={<FaArrowUp />}
-            />
-            <Button
-              onClick={() => moveLine("down")}
-              tooltip="Move line down"
-              icon={<FaArrowDown />}
             />
             <Button
               onClick={() => window.print()}
@@ -237,39 +165,64 @@ function App() {
             />
             <ToolbarDivider />
             <Button
-              onClick={() => actionsRef.current.toggleMode()}
+              onClick={performToggle}
               tooltip="Toggle Mode (Ctrl+E)"
-              variant="ghost"
-              active={mode === "preview"}
+              variant={mode === "preview" ? "primary" : "ghost"}
+              className="w-28"
             >
               {mode === "edit" ? (
                 <>
-                  <FaCode className="mr-1" /> Source
+                  <FaEye className="mr-2" /> Preview
                 </>
               ) : (
                 <>
-                  <FaEye className="mr-1" /> Preview
+                  <FaCode className="mr-2" /> Editor
                 </>
               )}
             </Button>
           </ToolbarGroup>
+          
+          <SettingsPanel
+            isOpen={showSettings}
+            onClose={() => setShowSettings(false)}
+          />
         </Toolbar>
       }
     >
-      {mode === "edit" ? (
-        <Editor
-          content={docContent}
-          onChange={(val) => {
-            setDocContent(val);
-            setIsDirty(true);
-          }}
-          lineWrap={lineWrapEnabled}
-          overflowFold={overflowFoldEnabled}
-          onViewInit={handleEditorInit}
-        />
-      ) : (
-        <Preview content={docContent} />
-      )}
+      <AnimatePresence mode="wait" initial={false}>
+        {mode === "edit" ? (
+          <motion.div
+            key="edit"
+            className="w-full h-full"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Editor
+              content={docContent}
+              onChange={(val) => {
+                setDocContent(val);
+                setIsDirty(true);
+              }}
+              lineWrap={lineWrapEnabled}
+              overflowFold={overflowFoldEnabled}
+              onViewInit={handleEditorInit}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="preview"
+            className="w-full h-full overflow-auto"
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Preview content={docContent} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Layout>
   );
 }

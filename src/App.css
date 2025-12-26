@@ -5,24 +5,28 @@
 @layer base {
   :root {
     --bg-color: #ffffff;
-    --text-primary: #0f172a; /* slate-900 */
-    --toolbar-bg: #f8fafc; /* slate-50 */
-    --toolbar-border: #e2e8f0; /* slate-200 */
+    --text-primary: #0f172a;
+    /* slate-900 */
+    --toolbar-glass: rgba(255, 255, 255, 0.8);
+    --toolbar-border: rgba(226, 232, 240, 0.6);
+    /* slate-200 with opacity */
   }
 
   body {
-    @apply bg-white text-slate-900 font-sans overflow-hidden;
+    @apply bg-white text-slate-900 font-sans overflow-hidden antialiased;
   }
 }
 
-/* Custom scrollbar for Webkit */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   @apply bg-transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 rounded hover:bg-slate-400;
+  @apply bg-slate-300/80 rounded-full hover:bg-slate-400 transition-colors;
 }
