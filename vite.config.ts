@@ -33,7 +33,7 @@ export default defineConfig(async () => ({
   // does not try to resolve native Tauri modules.
   build: {
     rollupOptions: {
-      external: [/^@tauri-apps\/api(\/.*)?$/],
+      external: [/^@tauri-apps\/api(\/.*)?$/, /^prismjs(\/.*)?$/],
     },
   },
 }));
