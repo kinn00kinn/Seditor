@@ -1,5 +1,7 @@
 // src/components/MarkdownPreview.tsx
 import React, { useEffect, useRef, useState } from "react";
+import { FiCopy, FiCheck } from "react-icons/fi";
+import "./MarkdownPreview.css";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -44,7 +46,6 @@ const CodeBlock: React.FC<{
   const codeText = String(children).replace(/\n$/, "");
   const [copied, setCopied] = useState(false);
   const codeRef = useRef<HTMLElement | null>(null);
-
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(codeText);
@@ -66,12 +67,52 @@ const CodeBlock: React.FC<{
       document.body.removeChild(ta);
     }
   };
+  const [isDark, setIsDark] = useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    if (codeRef.current) {
+      try {
+        Prism.highlightElement(codeRef.current as Element);
+      } catch (e) {
+        // ignore
+      }
+
+      // determine background brightness to toggle button styling
+      try {
+        const el = codeRef.current as HTMLElement;
+        const container = el.closest(".code-block") || el.parentElement || el;
+        const bg = window.getComputedStyle(
+          container as Element
+        ).backgroundColor;
+        const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(bg || "");
+        if (m) {
+          const r = Number(m[1]);
+          const g = Number(m[2]);
+          const b = Number(m[3]);
+          const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+          setIsDark(lum < 0.5);
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [codeText]);
 
   return (
-    <div className="code-block">
+    <div
+      className={`code-block ${
+        isDark === null ? "" : isDark ? "dark" : "light"
+      }`}
+    >
       <div className="code-toolbar">
-        <button type="button" className="copy-btn" onClick={handleCopy}>
-          {copied ? "Copied" : "Copy"}
+        <button
+          type="button"
+          className="copy-btn"
+          onClick={handleCopy}
+          aria-label={copied ? "Copied" : "Copy code"}
+          title={copied ? "Copied" : "Copy code"}
+        >
+          {copied ? <FiCheck className="icon" /> : <FiCopy className="icon" />}
         </button>
       </div>
       <pre>
@@ -83,15 +124,7 @@ const CodeBlock: React.FC<{
   );
 };
 
-// highlight after render
-React.useEffect(() => {
-  if (!document) return;
-  try {
-    Prism.highlightAll();
-  } catch (e) {
-    // ignore
-  }
-}, []);
+// Prism highlighting is triggered inside the component when `content` changes.
 
 export const MarkdownPreview: React.FC<Props> = ({ content }) => {
   useEffect(() => {
@@ -117,13 +150,29 @@ export const MarkdownPreview: React.FC<Props> = ({ content }) => {
               if (!href) return;
               e.preventDefault();
               // Try to use Tauri's shell API if available, otherwise fallback to window.open
-              import("@tauri-apps/api/shell")
+              const tauriModuleName = "@tauri-apps/api/shell";
+              // @ts-ignore: dynamic import intentionally not statically analyzable
+              import(/* @vite-ignore */ tauriModuleName)
                 .then((mod) => {
-                  if (mod && typeof mod.open === "function") {
-                    mod.open(href as string);
-                  } else {
-                    window.open(href as string, "_blank");
+                  // Tauri shell may be exported as a named export or as default
+                  const opener =
+                    mod && typeof mod.open === "function"
+                      ? mod.open
+                      : mod &&
+                        mod.default &&
+                        typeof mod.default.open === "function"
+                      ? mod.default.open
+                      : null;
+
+                  if (opener) {
+                    try {
+                      opener(href as string);
+                      return;
+                    } catch (e) {
+                      // fall through to window.open
+                    }
                   }
+                  window.open(href as string, "_blank");
                 })
                 .catch(() => {
                   window.open(href as string, "_blank");
