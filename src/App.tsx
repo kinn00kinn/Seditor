@@ -22,7 +22,8 @@ import {
 
 import { useFileHandler } from "./hooks/useFileHandler";
 import { MarkdownPreview } from "./components/MarkdownPreview";
-import { FaFolderOpen, FaSave, FaCode, FaEye, FaPrint } from "react-icons/fa";
+import SettingsPanel from "./components/SettingsPanel";
+import { FaFolderOpen, FaSave, FaCode, FaEye, FaPrint, FaCog } from "react-icons/fa";
 import "./App.css";
 
 const editorTheme = EditorView.theme({
@@ -47,6 +48,7 @@ function App() {
   } = useFileHandler();
 
   const [mode, setMode] = useState<"edit" | "preview">("edit");
+  const [showSettings, setShowSettings] = useState(false);
 
   // --- Actions (Ref pattern for Global shortcuts) ---
   const actionsRef = useRef({
@@ -189,6 +191,10 @@ function App() {
           </span>
         </div>
         <div className="toolbar-group">
+          <button onClick={() => setShowSettings(true)} title="Settings">
+            <FaCog />
+          </button>
+          {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
           <button onClick={() => window.print()} title="Print (Ctrl+P)">
             <FaPrint />
           </button>

@@ -52,3 +52,26 @@ body {
   .preview-wrapper { padding: 0; overflow: visible; }
   .markdown-body { max-width: 100%; }
 }
+
+/* Settings panel */
+.settings-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.settings-panel {
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  width: 480px;
+  max-width: 95%;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.settings-panel h3 { margin-top: 0; }
+.settings-panel label { display:block; margin:8px 0; }
+.settings-panel input, .settings-panel textarea { width:100%; margin-top:6px; }
+.settings-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }

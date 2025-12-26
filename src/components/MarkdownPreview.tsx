@@ -186,7 +186,18 @@ export const MarkdownPreview: React.FC<Props> = ({ content }) => {
               </a>
             );
           },
-          code({ className, children }) {
+          code({ inline, className, children, ...props }: any) {
+            // Inline code should render as a normal <code> to avoid invalid
+            // nesting (e.g. <p><pre>...). For fenced code blocks (block),
+            // render our CodeBlock component.
+            if (inline) {
+              return (
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              );
+            }
+
             const match = /language-(\w+)/.exec(className || "");
             const lang = match && match[1];
             const isMermaid = lang === "mermaid";
