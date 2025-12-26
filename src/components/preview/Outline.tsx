@@ -20,7 +20,7 @@ export const Outline: React.FC<OutlineProps> = ({
   if (headings.length === 0) return null;
 
   return (
-    <div className="h-full">
+    <div className="h-full px-4">
       <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
         Outline
       </h3>

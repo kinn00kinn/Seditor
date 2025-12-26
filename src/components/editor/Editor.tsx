@@ -92,7 +92,17 @@ export const Editor: React.FC<EditorProps> = ({
       extensions: [
         lineNumbers(),
         highlightActiveLineGutter(),
-        foldGutter(),
+        foldGutter({
+          markerDOM: (open) => {
+            const el = document.createElement("div");
+            el.className = `fold-icon ${open ? "fold-open" : "fold-closed"}`;
+            // Use SVG for VS Code style chevron
+            el.innerHTML = open 
+              ? `<svg width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6l-6-6 1.41-1.41z"/></svg>` 
+              : `<svg width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>`;
+            return el;
+          }
+        }),
         lineWrappingComp.current.of(lineWrap ? EditorView.lineWrapping : []),
         history(),
         markdown(),
