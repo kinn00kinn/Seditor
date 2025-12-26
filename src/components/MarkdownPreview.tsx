@@ -139,6 +139,53 @@ export const MarkdownPreview: React.FC<Props> = ({ content }) => {
     }
   }, [content]);
 
+  // Add VSCode-like fold toggles for headings: a small chevron button
+  // is inserted before each heading and toggles the visibility of the
+  // following nodes until the next heading of the same or higher level.
+  useEffect(() => {
+    const root = document.querySelector(".markdown-body");
+    if (!root) return;
+
+    const headings = Array.from(
+      root.querySelectorAll("h1,h2,h3,h4,h5,h6")
+    ) as HTMLElement[];
+
+    const addToggle = (h: HTMLElement) => {
+      // avoid duplicates
+      if (h.querySelector(".fold-toggle")) return;
+      const btn = document.createElement("button");
+      btn.className = "fold-toggle";
+      btn.setAttribute("aria-label", "Toggle fold");
+      btn.innerHTML =
+        '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden><path d="M8 10l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      btn.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        const level = Number(h.tagName.charAt(1));
+        let sib = h.nextElementSibling;
+        const collapsed = h.classList.toggle("collapsed");
+        btn.setAttribute("aria-expanded", (!collapsed).toString());
+        while (sib) {
+          if (/H[1-6]/.test(sib.tagName)) {
+            const nextLevel = Number(sib.tagName.charAt(1));
+            if (nextLevel <= level) break;
+          }
+          if (collapsed) sib.classList.add("collapsed-section");
+          else sib.classList.remove("collapsed-section");
+          sib = sib.nextElementSibling;
+        }
+      });
+      h.insertBefore(btn, h.firstChild);
+    };
+
+    headings.forEach(addToggle);
+    return () => {
+      headings.forEach((h) => {
+        const btn = h.querySelector(".fold-toggle");
+        if (btn) btn.remove();
+      });
+    };
+  }, [content]);
+
   return (
     <div className="markdown-body">
       <ReactMarkdown

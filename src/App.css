@@ -35,11 +35,11 @@ body {
 .divider { width: 1px; height: 20px; background: #cbd5e1; margin: 0 4px; }
 .file-name { font-size: 13px; font-weight: 500; margin-left: 8px; color: #334155; }
 
-.main-area { flex: 1; overflow: hidden; position: relative; }
-.editor-wrapper { height: 100%; text-align: left; }
-.preview-wrapper { height: 100%; overflow-y: auto; padding: 40px; background: #fff; }
+.main-area { flex: 1; overflow: hidden; position: relative; display:flex; }
+.editor-wrapper { height: 100%; text-align: left; flex:1; }
+.preview-wrapper { height: 100%; overflow: auto; padding: 40px; background: #fff; flex:1; }
 
-.markdown-body { max-width: 800px; margin: 0 auto; line-height: 1.6; }
+.markdown-body { max-width: 800px; margin: 0 auto; line-height: 1.6; height:100%; box-sizing:border-box; overflow:auto; }
 .markdown-body h1, .markdown-body h2 { border-bottom: 1px solid #eaecef; padding-bottom: .3em; }
 .markdown-body table { border-collapse: collapse; width: 100%; }
 .markdown-body table th, .markdown-body table td { border: 1px solid #dfe2e5; padding: 6px 13px; }
@@ -75,3 +75,22 @@ body {
 .settings-panel label { display:block; margin:8px 0; }
 .settings-panel input, .settings-panel textarea { width:100%; margin-top:6px; }
 .settings-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+/* collapsed heading styles */
+.collapsed-section { display: none !important; }
+.markdown-body h1.collapsed,
+.markdown-body h2.collapsed,
+.markdown-body h3.collapsed,
+.markdown-body h4.collapsed,
+.markdown-body h5.collapsed,
+.markdown-body h6.collapsed { opacity: 0.85; }
+
+/* Overflow fold for editor: clip long lines instead of horizontal scroll */
+.editor-wrapper.overflow-fold .cm-scroller {
+  overflow-x: hidden !important;
+}
+.editor-wrapper.overflow-fold .cm-line {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block;
+}

@@ -1,5 +1,5 @@
 // src/App.tsx
-import  { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EditorState } from "@codemirror/state";
 import {
   EditorView,
@@ -23,7 +23,16 @@ import {
 import { useFileHandler } from "./hooks/useFileHandler";
 import { MarkdownPreview } from "./components/MarkdownPreview";
 import SettingsPanel from "./components/SettingsPanel";
-import { FaFolderOpen, FaSave, FaCode, FaEye, FaPrint, FaCog } from "react-icons/fa";
+import {
+  FaFolderOpen,
+  FaSave,
+  FaCode,
+  FaEye,
+  FaPrint,
+  FaCog,
+  FaArrowUp,
+  FaArrowDown,
+} from "react-icons/fa";
 import "./App.css";
 
 const editorTheme = EditorView.theme({
@@ -49,6 +58,12 @@ function App() {
 
   const [mode, setMode] = useState<"edit" | "preview">("edit");
   const [showSettings, setShowSettings] = useState(false);
+  const [lineWrapEnabled, setLineWrapEnabled] = useState<boolean>(
+    localStorage.getItem("seditor:lineWrap") === "true"
+  );
+  const [overflowFoldEnabled, setOverflowFoldEnabled] = useState<boolean>(
+    localStorage.getItem("seditor:overflowFold") === "true"
+  );
 
   // --- Actions (Ref pattern for Global shortcuts) ---
   const actionsRef = useRef({
@@ -101,6 +116,24 @@ function App() {
     };
   }, [docContent, currentPath, mode]);
 
+  useEffect(() => {
+    const handler = (e: any) => {
+      if (e?.detail?.lineWrap !== undefined)
+        setLineWrapEnabled(Boolean(e.detail.lineWrap));
+      if (e?.detail?.overflowFold !== undefined)
+        setOverflowFoldEnabled(Boolean(e.detail.overflowFold));
+    };
+    window.addEventListener(
+      "seditor:settingsChanged",
+      handler as EventListener
+    );
+    return () =>
+      window.removeEventListener(
+        "seditor:settingsChanged",
+        handler as EventListener
+      );
+  }, []);
+
   // --- Global Shortcut (Capture Phase) ---
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -128,6 +161,51 @@ function App() {
       window.removeEventListener("keydown", handleKeyDown, { capture: true });
   }, []);
 
+  // Move selected lines up/down
+  const moveLine = (dir: "up" | "down") => {
+    const view = viewRef.current;
+    if (!view) return;
+    const state = view.state;
+    const { from, to } = state.selection.main;
+    const lineFrom = state.doc.lineAt(from);
+    const lineTo = state.doc.lineAt(to === from ? to : to - 1);
+    const start = lineFrom.from;
+    const end = lineTo.to;
+    const selectedText = state.doc.sliceString(start, end);
+
+    if (dir === "up") {
+      if (start === 0) return;
+      const prevLine = state.doc.lineAt(start - 1);
+      const before = state.doc.sliceString(prevLine.from, prevLine.to);
+      view.dispatch({
+        changes: [
+          {
+            from: prevLine.from,
+            to: end,
+            insert: selectedText + "\n" + before,
+          },
+        ],
+        selection: {
+          anchor: prevLine.from,
+          head: prevLine.from + selectedText.length,
+        },
+      });
+    } else {
+      if (end === state.doc.length) return;
+      const nextLine = state.doc.lineAt(end + 1);
+      const after = state.doc.sliceString(nextLine.from, nextLine.to);
+      view.dispatch({
+        changes: [
+          { from: start, to: nextLine.to, insert: after + "\n" + selectedText },
+        ],
+        selection: {
+          anchor: start + after.length + 1,
+          head: start + after.length + 1 + selectedText.length,
+        },
+      });
+    }
+  };
+
   // --- Editor Setup ---
   useEffect(() => {
     if (mode === "preview") return;
@@ -138,6 +216,7 @@ function App() {
       extensions: [
         lineNumbers(),
         highlightActiveLineGutter(),
+        lineWrapEnabled ? EditorView.lineWrapping : [],
         history(),
         markdown(),
         editorTheme,
@@ -164,9 +243,12 @@ function App() {
 
     const view = new EditorView({ state, parent: editorRef.current });
     viewRef.current = view;
+    if (editorRef.current) {
+      editorRef.current.classList.toggle("overflow-fold", overflowFoldEnabled);
+    }
     view.focus();
     return () => view.destroy();
-  }, [mode]);
+  }, [mode, lineWrapEnabled, overflowFoldEnabled]);
 
   return (
     <div className="app-container">
@@ -194,7 +276,19 @@ function App() {
           <button onClick={() => setShowSettings(true)} title="Settings">
             <FaCog />
           </button>
-          {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+          {showSettings && (
+            <SettingsPanel onClose={() => setShowSettings(false)} />
+          )}
+          <button onClick={() => moveLine("up")} title="Move line up">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+              <path d="M12 8l-6 6h12z" fill="currentColor" />
+            </svg>
+          </button>
+          <button onClick={() => moveLine("down")} title="Move line down">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
+              <path d="M12 16l6-6H6z" fill="currentColor" />
+            </svg>
+          </button>
           <button onClick={() => window.print()} title="Print (Ctrl+P)">
             <FaPrint />
           </button>
