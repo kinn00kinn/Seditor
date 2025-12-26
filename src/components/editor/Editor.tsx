@@ -12,12 +12,13 @@ import {
   historyKeymap,
   indentWithTab,
 } from "@codemirror/commands";
-import { foldGutter, foldKeymap } from "@codemirror/fold";
 import { searchKeymap, openSearchPanel } from "@codemirror/search";
 import { markdown } from "@codemirror/lang-markdown";
 import {
   syntaxHighlighting,
   defaultHighlightStyle,
+  foldGutter,
+  foldKeymap,
 } from "@codemirror/language";
 
 interface EditorProps {
@@ -91,7 +92,7 @@ export const Editor: React.FC<EditorProps> = ({
       extensions: [
         lineNumbers(),
         highlightActiveLineGutter(),
-        foldGutter() as any, // Cast to avoid version mismatch
+        foldGutter(),
         lineWrappingComp.current.of(lineWrap ? EditorView.lineWrapping : []),
         history(),
         markdown(),
@@ -99,7 +100,7 @@ export const Editor: React.FC<EditorProps> = ({
         syntaxHighlighting(defaultHighlightStyle),
         keymap.of([
           indentWithTab,
-          ...(foldKeymap as any), // Cast to avoid version mismatch
+          ...foldKeymap,
           {
             key: "Mod-f",
             run: () => {
