@@ -21,7 +21,7 @@ import {
 } from "@codemirror/language";
 
 import { useFileHandler } from "./hooks/useFileHandler";
-import { MarkdownPreview } from "./components/MarkdownPreview";
+import MarkdownPreview from "./components/MarkdownPreview";
 import SettingsPanel from "./components/SettingsPanel";
 import {
   FaFolderOpen,

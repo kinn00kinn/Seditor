@@ -92,3 +92,53 @@
 .markdown-body .fold-toggle[aria-expanded="false"] svg {
   transform: rotate(-90deg);
 }
+
+/* Layout for preview with outline */
+.preview-with-outline {
+  display: flex;
+  gap: 12px;
+}
+
+.preview-with-outline .markdown-body {
+  flex: 1 1 auto;
+  overflow: auto;
+  max-height: calc(100vh - 40px);
+}
+
+.outline {
+  width: 260px;
+  flex: 0 0 260px;
+  border-left: 1px solid rgba(0,0,0,0.06);
+  padding-left: 12px;
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  position: sticky;
+  top: 12px;
+}
+
+.outline ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.outline-item {
+  margin: 6px 0;
+}
+
+.outline-item a {
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.outline-item.active a {
+  font-weight: 600;
+  color: var(--link-color, #2563eb);
+}
+
+.outline-item.level-2 { padding-left: 8px; }
+.outline-item.level-3 { padding-left: 16px; }
+.outline-item.level-4 { padding-left: 24px; }
+.outline-item.level-5 { padding-left: 32px; }
+.outline-item.level-6 { padding-left: 40px; }

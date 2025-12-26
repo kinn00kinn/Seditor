@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FiCopy, FiCheck } from "react-icons/fi";
 import "./MarkdownPreview.css";
+import Outline from "./Outline";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -22,19 +23,26 @@ interface Props {
   content: string;
 }
 
-const MermaidBlock = ({ code }: { code: string }) => {
-  const ref = useRef<HTMLDivElement>(null);
+type HeadingItem = { id: string; text: string; level: number };
+
+const MermaidBlock: React.FC<{ code: string }> = ({ code }) => {
+  const ref = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
+    let cid = "";
     if (ref.current) {
+      cid = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
       mermaid
-        .render(`mermaid-${Math.random().toString(36).substr(2, 9)}`, code)
+        .render(cid, code)
         .then(({ svg }) => {
           if (ref.current) ref.current.innerHTML = svg;
         })
-        .catch((_e) => {
+        .catch(() => {
           if (ref.current) ref.current.innerText = "Mermaid Error";
         });
     }
+    return () => {
+      // no-op cleanup
+    };
   }, [code]);
   return <div ref={ref} className="mermaid" />;
 };
@@ -45,14 +53,21 @@ const CodeBlock: React.FC<{
 }> = ({ className, children }) => {
   const codeText = String(children).replace(/\n$/, "");
   const [copied, setCopied] = useState(false);
-  const codeRef = useRef<HTMLElement | null>(null);
+  const preRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (preRef.current) {
+      const codeEl = preRef.current.querySelector("code");
+      if (codeEl) Prism.highlightElement(codeEl as HTMLElement);
+    }
+  }, [codeText]);
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(codeText);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (_e) {
-      // fallback
+      window.setTimeout(() => setCopied(false), 1200);
+    } catch (e) {
       const ta = document.createElement("textarea");
       ta.value = codeText;
       document.body.appendChild(ta);
@@ -60,98 +75,41 @@ const CodeBlock: React.FC<{
       try {
         document.execCommand("copy");
         setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.error("copy failed", err);
+        window.setTimeout(() => setCopied(false), 1200);
+      } finally {
+        document.body.removeChild(ta);
       }
-      document.body.removeChild(ta);
     }
   };
-  const [isDark, setIsDark] = useState<boolean | null>(null);
-
-  React.useEffect(() => {
-    if (codeRef.current) {
-      try {
-        Prism.highlightElement(codeRef.current as Element);
-      } catch (e) {
-        // ignore
-      }
-
-      // determine background brightness to toggle button styling
-      try {
-        const el = codeRef.current as HTMLElement;
-        const container = el.closest(".code-block") || el.parentElement || el;
-        const bg = window.getComputedStyle(
-          container as Element
-        ).backgroundColor;
-        const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(bg || "");
-        if (m) {
-          const r = Number(m[1]);
-          const g = Number(m[2]);
-          const b = Number(m[3]);
-          const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-          setIsDark(lum < 0.5);
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-  }, [codeText]);
 
   return (
-    <div
-      className={`code-block ${
-        isDark === null ? "" : isDark ? "dark" : "light"
-      }`}
-    >
-      <div className="code-toolbar">
-        <button
-          type="button"
-          className="copy-btn"
-          onClick={handleCopy}
-          aria-label={copied ? "Copied" : "Copy code"}
-          title={copied ? "Copied" : "Copy code"}
-        >
-          {copied ? <FiCheck className="icon" /> : <FiCopy className="icon" />}
-        </button>
-      </div>
-      <pre>
-        <code ref={codeRef as any} className={className}>
-          {codeText}
-        </code>
+    <div className="code-block" ref={preRef}>
+      <pre className={className}>
+        <code>{codeText}</code>
       </pre>
+      <button className="code-copy" onClick={handleCopy} aria-label="Copy code">
+        {copied ? <FiCheck /> : <FiCopy />}
+      </button>
     </div>
   );
 };
 
-// Prism highlighting is triggered inside the component when `content` changes.
+const MarkdownPreview: React.FC<Props> = ({ content }) => {
+  const previewRef = useRef<HTMLDivElement | null>(null);
+  const headingsRef = useRef<HeadingItem[]>([]);
+  const [outline, setOutline] = useState<HeadingItem[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
-export const MarkdownPreview: React.FC<Props> = ({ content }) => {
   useEffect(() => {
-    mermaid.initialize({ startOnLoad: true });
-  }, []);
-
-  useEffect(() => {
-    try {
-      Prism.highlightAll();
-    } catch (e) {
-      // ignore
-    }
-  }, [content]);
-
-  // Add VSCode-like fold toggles for headings: a small chevron button
-  // is inserted before each heading and toggles the visibility of the
-  // following nodes until the next heading of the same or higher level.
-  useEffect(() => {
-    const root = document.querySelector(".markdown-body");
+    const root = previewRef.current || document.querySelector(".markdown-body");
     if (!root) return;
 
     const headings = Array.from(
       root.querySelectorAll("h1,h2,h3,h4,h5,h6")
     ) as HTMLElement[];
+    headingsRef.current = [];
 
     const addToggle = (h: HTMLElement) => {
-      // avoid duplicates
       if (h.querySelector(".fold-toggle")) return;
       const btn = document.createElement("button");
       btn.className = "fold-toggle";
@@ -159,22 +117,10 @@ export const MarkdownPreview: React.FC<Props> = ({ content }) => {
       btn.innerHTML =
         '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden><path d="M8 10l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-      // set initial expanded/collapsed state based on existing class
-      const initiallyCollapsed = h.classList.contains("collapsed");
-      btn.setAttribute("aria-expanded", (!initiallyCollapsed).toString());
-      if (initiallyCollapsed) {
-        // hide following siblings until next heading of same/higher level
-        const level = Number(h.tagName.charAt(1));
-        let sib = h.nextElementSibling;
-        while (sib) {
-          if (/H[1-6]/.test(sib.tagName)) {
-            const nextLevel = Number(sib.tagName.charAt(1));
-            if (nextLevel <= level) break;
-          }
-          sib.classList.add("collapsed-section");
-          sib = sib.nextElementSibling;
-        }
-      }
+      btn.setAttribute(
+        "aria-expanded",
+        (!h.classList.contains("collapsed")).toString()
+      );
 
       btn.addEventListener("click", (ev) => {
         ev.stopPropagation();
@@ -195,7 +141,22 @@ export const MarkdownPreview: React.FC<Props> = ({ content }) => {
       h.insertBefore(btn, h.firstChild);
     };
 
-    headings.forEach(addToggle);
+    headings.forEach((h) => {
+      const text = h.textContent ? h.textContent.trim() : "";
+      const id =
+        h.id ||
+        text
+          .toLowerCase()
+          .replace(/[^^\w\- ]+/g, "")
+          .replace(/\s+/g, "-");
+      const level = Number(h.tagName.charAt(1));
+      headingsRef.current.push({ id, text, level });
+      if (!h.id) h.id = id;
+      addToggle(h);
+    });
+
+    setOutline(headingsRef.current.slice());
+
     return () => {
       headings.forEach((h) => {
         const btn = h.querySelector(".fold-toggle");
@@ -204,79 +165,80 @@ export const MarkdownPreview: React.FC<Props> = ({ content }) => {
     };
   }, [content]);
 
+  useEffect(() => {
+    const container = previewRef.current || document;
+    let raf = 0;
+
+    const updateActive = () => {
+      const headings = Array.from(
+        (previewRef.current || document).querySelectorAll("h1,h2,h3,h4,h5,h6")
+      ) as HTMLElement[];
+      let current: string | null = null;
+      const topMargin = 80;
+      for (const h of headings) {
+        const rect = h.getBoundingClientRect();
+        if (rect.top <= topMargin) current = h.id || null;
+      }
+      setActiveId((prev) => (current !== prev ? current : prev));
+    };
+
+    const onScroll = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(updateActive);
+    };
+
+    (container as Element | Document).addEventListener(
+      "scroll",
+      onScroll as EventListener,
+      { passive: true } as any
+    );
+    window.addEventListener("resize", onScroll);
+    updateActive();
+
+    return () => {
+      (container as Element | Document).removeEventListener(
+        "scroll",
+        onScroll as EventListener
+      );
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [content]);
+
+  const scrollToId = (id: string) => {
+    const el = document.getElementById(id);
+    const container =
+      previewRef.current || document.querySelector(".markdown-body");
+    if (el && container) {
+      const ctr = container as HTMLElement;
+      const elRect = el.getBoundingClientRect();
+      const ctrRect = ctr.getBoundingClientRect();
+      const offset = elRect.top - ctrRect.top + ctr.scrollTop - 12;
+      ctr.scrollTo({ top: offset, behavior: "smooth" });
+      setActiveId(id);
+    }
+  };
+
   return (
-    <div className="markdown-body">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
-        components={{
-          a({ href, children, ...props }) {
-            const handleClick = (e: React.MouseEvent) => {
-              if (!href) return;
-              e.preventDefault();
-              // Try to use Tauri's shell API if available, otherwise fallback to window.open
-              const tauriModuleName = "@tauri-apps/api/shell";
-              // @ts-ignore: dynamic import intentionally not statically analyzable
-              import(/* @vite-ignore */ tauriModuleName)
-                .then((mod) => {
-                  // Tauri shell may be exported as a named export or as default
-                  const opener =
-                    mod && typeof mod.open === "function"
-                      ? mod.open
-                      : mod &&
-                        mod.default &&
-                        typeof mod.default.open === "function"
-                      ? mod.default.open
-                      : null;
-
-                  if (opener) {
-                    try {
-                      opener(href as string);
-                      return;
-                    } catch (e) {
-                      // fall through to window.open
-                    }
-                  }
-                  window.open(href as string, "_blank");
-                })
-                .catch(() => {
-                  window.open(href as string, "_blank");
-                });
-            };
-
-            return (
-              // eslint-disable-next-line jsx-a11y/anchor-has-content
-              <a href={href} onClick={handleClick} {...props}>
-                {children}
-              </a>
-            );
-          },
-          code({ inline, className, children, ...props }: any) {
-            // Inline code should render as a normal <code> to avoid invalid
-            // nesting (e.g. <p><pre>...). For fenced code blocks (block),
-            // render our CodeBlock component.
-            if (inline) {
-              return (
-                <code className={className} {...props}>
-                  {children}
-                </code>
-              );
-            }
-
-            const match = /language-(\w+)/.exec(className || "");
-            const lang = match && match[1];
-            const isMermaid = lang === "mermaid";
-            if (isMermaid) {
-              return (
-                <MermaidBlock code={String(children).replace(/\n$/, "")} />
-              );
-            }
-            return <CodeBlock className={className}>{children}</CodeBlock>;
-          },
-        }}
+    <div className="preview-with-outline">
+      <div
+        className="markdown-body"
+        ref={previewRef as React.RefObject<HTMLDivElement>}
       >
-        {content}
-      </ReactMarkdown>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm, remarkMath]}
+          rehypePlugins={[rehypeKatex]}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
+      <Outline
+        headings={outline}
+        activeId={activeId || undefined}
+        onClick={scrollToId}
+      />
     </div>
   );
 };
+
+export default MarkdownPreview;
