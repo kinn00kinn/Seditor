@@ -39,6 +39,31 @@ export const MarkdownPreview: React.FC<Props> = ({ content }) => {
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}
         components={{
+          a({ href, children, ...props }) {
+            const handleClick = (e: React.MouseEvent) => {
+              if (!href) return;
+              e.preventDefault();
+              // Try to use Tauri's shell API if available, otherwise fallback to window.open
+              import("@tauri-apps/api/shell")
+                .then((mod) => {
+                  if (mod && typeof mod.open === "function") {
+                    mod.open(href as string);
+                  } else {
+                    window.open(href as string, "_blank");
+                  }
+                })
+                .catch(() => {
+                  window.open(href as string, "_blank");
+                });
+            };
+
+            return (
+              // eslint-disable-next-line jsx-a11y/anchor-has-content
+              <a href={href} onClick={handleClick} {...props}>
+                {children}
+              </a>
+            );
+          },
           code({ node, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || "");
             const isMermaid = match && match[1] === "mermaid";
