@@ -5,6 +5,8 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import mermaid from "mermaid";
 import Prism from "prismjs";
+// @ts-ignore
+// import { open } from "@tauri-apps/plugin-opener";
 
 import "katex/dist/katex.min.css";
 import "prismjs/themes/prism.css";
@@ -15,6 +17,8 @@ import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-tsx";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-markup";
+import "prismjs/components/prism-bash";
+import "prismjs/components/prism-json";
 
 import { FiCopy, FiCheck } from "react-icons/fi";
 import { Outline } from "./Outline";
@@ -49,6 +53,10 @@ const CodeBlock: React.FC<{
   const [copied, setCopied] = useState(false);
   const preRef = useRef<HTMLDivElement>(null);
 
+  // Extract language from className (e.g., "language-js")
+  const match = /language-(\w+)/.exec(className || "");
+  const displayLang = match ? match[1] : "";
+
   useEffect(() => {
     if (preRef.current) {
       const codeEl = preRef.current.querySelector("code");
@@ -59,20 +67,23 @@ const CodeBlock: React.FC<{
   const handleCopy = async () => {
     await navigator.clipboard.writeText(codeText);
     setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="relative group my-4" ref={preRef}>
-      <button
-        onClick={handleCopy}
-        className="absolute top-2 right-2 p-1.5 rounded bg-white/80 border border-slate-200 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white hover:text-slate-900"
-        title="Copy code"
-      >
-        {copied ? <FiCheck /> : <FiCopy />}
-      </button>
-      <pre className={`${className} !m-0 rounded-lg !bg-slate-900 !p-4 overflow-x-auto`}>
-        <code className="text-sm text-slate-100 font-mono">{codeText}</code>
+    <div className="relative group my-6 rounded-lg overflow-hidden border border-slate-200 shadow-sm" ref={preRef}>
+      <div className="flex items-center justify-between px-4 py-2 bg-slate-100 border-b border-slate-200">
+         <span className="text-xs font-semibold text-slate-500 uppercase">{displayLang || "text"}</span>
+         <button
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors"
+            title="Copy code"
+          >
+            {copied ? <><FiCheck className="text-green-600"/> Copied</> : <><FiCopy /> Copy</>}
+          </button>
+      </div>
+      <pre className={`${className} !m-0 !bg-slate-900 !p-4 overflow-x-auto rounded-none`}>
+        <code className="text-sm text-slate-100 font-mono leading-relaxed">{codeText}</code>
       </pre>
     </div>
   );
@@ -133,7 +144,7 @@ export const Preview: React.FC<PreviewProps> = ({ content }) => {
       <div className="flex-1 overflow-y-auto preview-scroll-container px-8 py-8">
         <div 
           ref={previewRef}
-          className="prose prose-slate max-w-3xl mx-auto dark:prose-invert prose-headings:scroll-mt-20 prose-a:text-blue-600 hover:prose-a:text-blue-500"
+          className="prose prose-slate max-w-3xl mx-auto dark:prose-invert prose-headings:scroll-mt-20 prose-a:text-blue-600 hover:prose-a:text-blue-500 pb-32" 
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
@@ -148,7 +159,30 @@ export const Preview: React.FC<PreviewProps> = ({ content }) => {
                 if (!inline) {
                   return <CodeBlock className={className}>{children}</CodeBlock>;
                 }
-                return <code className={className} {...props}>{children}</code>;
+                return <code className={`${className} bg-slate-100 px-1 py-0.5 rounded text-sm text-pink-600 font-mono`} {...props}>{children}</code>;
+              },
+              a({ node, href, children, ...props }) {
+                 return (
+                    <a
+                      href={href}
+                      onClick={async (e) => {
+                        e.preventDefault();
+                         if (href) {
+                           try {
+                             // await open(href);
+                             window.open(href, "_blank");
+                           } catch (err) {
+                             console.error("Failed to open link:", err);
+                             window.open(href, "_blank");
+                           }
+                         }
+                      }}
+                      className="cursor-pointer"
+                      {...props}
+                    >
+                      {children}
+                    </a>
+                 )
               },
               h1: ({ node, ...props }) => <h1 id={props.id} {...props} />,
               h2: ({ node, ...props }) => <h2 id={props.id} {...props} />,

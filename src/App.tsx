@@ -10,6 +10,7 @@ import { Button } from "./components/ui/Button";
 import { Editor } from "./components/editor/Editor";
 import { Preview } from "./components/preview/Preview";
 import { SettingsPanel } from "./components/SettingsPanel";
+import { HelpModal } from "./components/HelpModal";
 import {
   FaFolderOpen,
   FaSave,
@@ -19,6 +20,7 @@ import {
   FaCog,
   FaArrowUp,
   FaArrowDown,
+  FaQuestionCircle,
 } from "react-icons/fa";
 import "./App.css";
 
@@ -38,6 +40,7 @@ function App() {
 
   const [mode, setMode] = useState<"edit" | "preview">("edit");
   const [showSettings, setShowSettings] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [lineWrapEnabled, setLineWrapEnabled] = useState<boolean>(
     localStorage.getItem("seditor:lineWrap") === "true"
   );
@@ -159,6 +162,11 @@ function App() {
               icon={<FaCog />}
             />
             <Button
+              onClick={() => setShowHelp(true)}
+              tooltip="Help & Manual"
+              icon={<FaQuestionCircle />}
+            />
+            <Button
               onClick={() => window.print()}
               tooltip="Print (Ctrl+P)"
               icon={<FaPrint />}
@@ -186,6 +194,10 @@ function App() {
             isOpen={showSettings}
             onClose={() => setShowSettings(false)}
           />
+          <HelpModal
+            isOpen={showHelp}
+            onClose={() => setShowHelp(false)}
+           />
         </Toolbar>
       }
     >

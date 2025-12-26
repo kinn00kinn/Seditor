@@ -30,3 +30,14 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-slate-300/80 rounded-full hover:bg-slate-400 transition-colors;
 }
+
+/* Overflow Folder (Clip lines) */
+.overflow-fold .cm-content {
+  white-space: pre !important;
+  overflow-wrap: normal !important;
+}
+
+.overflow-fold .cm-line {
+  overflow: hidden !important;
+  text-overflow: clip !important;
+}
