@@ -158,6 +158,24 @@ export const MarkdownPreview: React.FC<Props> = ({ content }) => {
       btn.setAttribute("aria-label", "Toggle fold");
       btn.innerHTML =
         '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden><path d="M8 10l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+      // set initial expanded/collapsed state based on existing class
+      const initiallyCollapsed = h.classList.contains("collapsed");
+      btn.setAttribute("aria-expanded", (!initiallyCollapsed).toString());
+      if (initiallyCollapsed) {
+        // hide following siblings until next heading of same/higher level
+        const level = Number(h.tagName.charAt(1));
+        let sib = h.nextElementSibling;
+        while (sib) {
+          if (/H[1-6]/.test(sib.tagName)) {
+            const nextLevel = Number(sib.tagName.charAt(1));
+            if (nextLevel <= level) break;
+          }
+          sib.classList.add("collapsed-section");
+          sib = sib.nextElementSibling;
+        }
+      }
+
       btn.addEventListener("click", (ev) => {
         ev.stopPropagation();
         const level = Number(h.tagName.charAt(1));

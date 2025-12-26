@@ -53,3 +53,42 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
   font-size: 0.9rem;
 }
+
+/* Heading fold toggle */
+.markdown-body .fold-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  vertical-align: middle;
+}
+
+.markdown-body h1 .fold-toggle,
+.markdown-body h2 .fold-toggle,
+.markdown-body h3 .fold-toggle,
+.markdown-body h4 .fold-toggle,
+.markdown-body h5 .fold-toggle,
+.markdown-body h6 .fold-toggle {
+  opacity: 0.6;
+}
+
+.markdown-body .collapsed + .collapsed-section,
+.markdown-body .collapsed ~ .collapsed-section {
+  display: none;
+}
+
+/* rotate chevron when collapsed */
+.markdown-body .fold-toggle svg {
+  display: block;
+  transition: transform 0.15s ease;
+}
+.markdown-body .fold-toggle[aria-expanded="false"] svg {
+  transform: rotate(-90deg);
+}
