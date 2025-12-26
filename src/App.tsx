@@ -1,28 +1,12 @@
-// src/App.tsx
 import { useEffect, useRef, useState } from "react";
-import { EditorState } from "@codemirror/state";
-import {
-  EditorView,
-  keymap,
-  lineNumbers,
-  highlightActiveLineGutter,
-} from "@codemirror/view";
-import {
-  defaultKeymap,
-  history,
-  historyKeymap,
-  indentWithTab,
-} from "@codemirror/commands";
-import { searchKeymap, openSearchPanel } from "@codemirror/search";
-import { markdown } from "@codemirror/lang-markdown";
-import {
-  syntaxHighlighting,
-  defaultHighlightStyle,
-} from "@codemirror/language";
-
+import { EditorView } from "@codemirror/view";
 import { useFileHandler } from "./hooks/useFileHandler";
-import MarkdownPreview from "./components/MarkdownPreview";
-import SettingsPanel from "./components/SettingsPanel";
+import { Layout } from "./components/layout/Layout";
+import { Toolbar, ToolbarGroup, ToolbarDivider } from "./components/ui/Toolbar";
+import { Button } from "./components/ui/Button";
+import { Editor } from "./components/editor/Editor";
+import { Preview } from "./components/preview/Preview";
+import { SettingsPanel } from "./components/SettingsPanel";
 import {
   FaFolderOpen,
   FaSave,
@@ -35,14 +19,7 @@ import {
 } from "react-icons/fa";
 import "./App.css";
 
-const editorTheme = EditorView.theme({
-  "&": { height: "100%", fontSize: "16px" },
-  ".cm-scroller": { fontFamily: "'Consolas', 'Monaco', monospace" },
-  ".cm-content": { maxWidth: "100%", paddingBottom: "300px" },
-});
-
 function App() {
-  const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
 
   const {
@@ -204,122 +181,96 @@ function App() {
         },
       });
     }
+    view.focus();
   };
 
-  // --- Editor Setup ---
-  useEffect(() => {
-    if (mode === "preview") return;
-    if (!editorRef.current) return;
-
-    const state = EditorState.create({
-      doc: docContent,
-      extensions: [
-        lineNumbers(),
-        highlightActiveLineGutter(),
-        lineWrapEnabled ? EditorView.lineWrapping : [],
-        history(),
-        markdown(),
-        editorTheme,
-        syntaxHighlighting(defaultHighlightStyle),
-        keymap.of([
-          indentWithTab,
-          {
-            key: "Mod-f",
-            run: () => {
-              openSearchPanel(viewRef.current!);
-              return true;
-            },
-            preventDefault: true,
-          },
-          ...searchKeymap,
-          ...defaultKeymap,
-          ...historyKeymap,
-        ]),
-        EditorView.updateListener.of((u) => {
-          if (u.docChanged) setIsDirty(true);
-        }),
-      ],
-    });
-
-    const view = new EditorView({ state, parent: editorRef.current });
+  const handleEditorInit = (view: EditorView) => {
     viewRef.current = view;
-    if (editorRef.current) {
-      editorRef.current.classList.toggle("overflow-fold", overflowFoldEnabled);
-    }
-    view.focus();
-    return () => view.destroy();
-  }, [mode, lineWrapEnabled, overflowFoldEnabled]);
+  };
 
   return (
-    <div className="app-container">
-      <div className="toolbar">
-        <div className="toolbar-group">
-          <button
-            onClick={() => actionsRef.current.open()}
-            title="Open (Ctrl+O)"
-          >
-            <FaFolderOpen />
-          </button>
-          <button
-            onClick={() => actionsRef.current.save()}
-            title="Save (Ctrl+S)"
-            className={isDirty ? "dirty" : ""}
-          >
-            <FaSave />
-          </button>
-          <span className="file-name">
-            {currentPath ? currentPath.split(/[\\/]/).pop() : "Untitled"}
-            {isDirty && "*"}
-          </span>
-        </div>
-        <div className="toolbar-group">
-          <button onClick={() => setShowSettings(true)} title="Settings">
-            <FaCog />
-          </button>
-          {showSettings && (
-            <SettingsPanel onClose={() => setShowSettings(false)} />
-          )}
-          <button onClick={() => moveLine("up")} title="Move line up">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-              <path d="M12 8l-6 6h12z" fill="currentColor" />
-            </svg>
-          </button>
-          <button onClick={() => moveLine("down")} title="Move line down">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-              <path d="M12 16l6-6H6z" fill="currentColor" />
-            </svg>
-          </button>
-          <button onClick={() => window.print()} title="Print (Ctrl+P)">
-            <FaPrint />
-          </button>
-          <div className="divider" />
-          <button
-            onClick={() => actionsRef.current.toggleMode()}
-            className="mode-btn"
-            title="Toggle Mode (Ctrl+E)"
-          >
-            {mode === "edit" ? (
-              <>
-                <FaCode /> Source
-              </>
-            ) : (
-              <>
-                <FaEye /> Preview
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-      <div className="main-area">
-        {mode === "edit" ? (
-          <div ref={editorRef} className="editor-wrapper" />
-        ) : (
-          <div className="preview-wrapper">
-            <MarkdownPreview content={docContent} />
-          </div>
-        )}
-      </div>
-    </div>
+    <Layout
+      header={
+        <Toolbar>
+          <ToolbarGroup>
+            <Button
+              onClick={() => actionsRef.current.open()}
+              tooltip="Open (Ctrl+O)"
+              icon={<FaFolderOpen />}
+            />
+            <Button
+              onClick={() => actionsRef.current.save()}
+              tooltip="Save (Ctrl+S)"
+              icon={<FaSave />}
+              className={isDirty ? "text-red-500" : ""}
+            />
+            <div className="text-sm font-medium text-slate-600 ml-2">
+              {currentPath ? currentPath.split(/[\\/]/).pop() : "Untitled"}
+              {isDirty && "*"}
+            </div>
+          </ToolbarGroup>
+          <ToolbarGroup>
+            <Button
+              onClick={() => setShowSettings(true)}
+              tooltip="Settings"
+              icon={<FaCog />}
+            />
+            <SettingsPanel
+              isOpen={showSettings}
+              onClose={() => setShowSettings(false)}
+            />
+            <ToolbarDivider />
+            <Button
+              onClick={() => moveLine("up")}
+              tooltip="Move line up"
+              icon={<FaArrowUp />}
+            />
+            <Button
+              onClick={() => moveLine("down")}
+              tooltip="Move line down"
+              icon={<FaArrowDown />}
+            />
+            <Button
+              onClick={() => window.print()}
+              tooltip="Print (Ctrl+P)"
+              icon={<FaPrint />}
+            />
+            <ToolbarDivider />
+            <Button
+              onClick={() => actionsRef.current.toggleMode()}
+              tooltip="Toggle Mode (Ctrl+E)"
+              variant="ghost"
+              active={mode === "preview"}
+            >
+              {mode === "edit" ? (
+                <>
+                  <FaCode className="mr-1" /> Source
+                </>
+              ) : (
+                <>
+                  <FaEye className="mr-1" /> Preview
+                </>
+              )}
+            </Button>
+          </ToolbarGroup>
+        </Toolbar>
+      }
+    >
+      {mode === "edit" ? (
+        <Editor
+          content={docContent}
+          onChange={(val) => {
+            setDocContent(val);
+            setIsDirty(true);
+          }}
+          lineWrap={lineWrapEnabled}
+          overflowFold={overflowFoldEnabled}
+          onViewInit={handleEditorInit}
+        />
+      ) : (
+        <Preview content={docContent} />
+      )}
+    </Layout>
   );
 }
 

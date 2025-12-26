@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
+import { Modal } from "./ui/Modal";
+import { Button } from "./ui/Button";
 
 const STYLE_ID = "seditor-user-style";
 
 function applyStyle(fontFamily: string, fontSize: number, customCss: string) {
   let el = document.getElementById(STYLE_ID) as HTMLStyleElement | null;
   const css = `
-    .markdown-body, .editor-wrapper {
-      font-family: ${fontFamily};
-      font-size: ${fontSize}px;
+    .prose, .cm-content {
+      font-family: ${fontFamily} !important;
+      font-size: ${fontSize}px !important;
     }
     ${customCss || ""}
   `;
@@ -20,12 +22,18 @@ function applyStyle(fontFamily: string, fontSize: number, customCss: string) {
   el.innerHTML = css;
 }
 
-export const SettingsPanel: React.FC<{ onClose: () => void }> = ({
+interface SettingsPanelProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const SettingsPanel: React.FC<SettingsPanelProps> = ({
+  isOpen,
   onClose,
 }) => {
   const [fontFamily, setFontFamily] = useState<string>(
     localStorage.getItem("seditor:fontFamily") ||
-      "'Segoe UI', system-ui, sans-serif"
+      "'Inter', system-ui, sans-serif"
   );
   const [fontSize, setFontSize] = useState<number>(
     Number(localStorage.getItem("seditor:fontSize")) || 16
@@ -51,12 +59,13 @@ export const SettingsPanel: React.FC<{ onClose: () => void }> = ({
     localStorage.setItem("seditor:overflowFold", String(overflowFold));
     localStorage.setItem("seditor:customCss", customCss || "");
     applyStyle(fontFamily, fontSize, customCss);
-    // notify app about settings change
+    
     window.dispatchEvent(
       new CustomEvent("seditor:settingsChanged", {
         detail: { lineWrap, overflowFold },
       })
     );
+    onClose();
   };
 
   const handleReset = () => {
@@ -65,65 +74,83 @@ export const SettingsPanel: React.FC<{ onClose: () => void }> = ({
     localStorage.removeItem("seditor:customCss");
     localStorage.removeItem("seditor:lineWrap");
     localStorage.removeItem("seditor:overflowFold");
-    setFontFamily("'Segoe UI', system-ui, sans-serif");
+    setFontFamily("'Inter', system-ui, sans-serif");
     setFontSize(16);
     setCustomCss("");
     setLineWrap(false);
     setOverflowFold(false);
-    applyStyle("'Segoe UI', system-ui, sans-serif", 16, "");
+    applyStyle("'Inter', system-ui, sans-serif", 16, "");
   };
 
   return (
-    <div className="settings-backdrop" onClick={onClose}>
-      <div className="settings-panel" onClick={(e) => e.stopPropagation()}>
-        <h3>Settings</h3>
-        <label>
-          Font family
+    <Modal isOpen={isOpen} onClose={onClose} title="Settings">
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Font Family
+          </label>
           <input
+            type="text"
+            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={fontFamily}
             onChange={(e) => setFontFamily(e.target.value)}
           />
-        </label>
-        <label>
-          Font size (px)
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Font Size (px)
+          </label>
           <input
             type="number"
+            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={fontSize}
             onChange={(e) => setFontSize(Number(e.target.value) || 16)}
           />
-        </label>
-        <label>
-          Custom CSS
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Custom CSS
+          </label>
           <textarea
+            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+            rows={4}
             value={customCss}
             onChange={(e) => setCustomCss(e.target.value)}
-            rows={6}
           />
-        </label>
-        <label>
+        </div>
+        <div className="flex items-center gap-2">
           <input
             type="checkbox"
+            id="lineWrap"
+            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
             checked={lineWrap}
             onChange={(e) => setLineWrap(e.target.checked)}
-          />{" "}
-          Enable line wrap
-        </label>
-        <label>
+          />
+          <label htmlFor="lineWrap" className="text-sm text-slate-700">
+            Enable line wrap
+          </label>
+        </div>
+        <div className="flex items-center gap-2">
           <input
             type="checkbox"
+            id="overflowFold"
+            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
             checked={overflowFold}
             onChange={(e) => setOverflowFold(e.target.checked)}
-          />{" "}
-          Enable overflow fold (clip long lines)
-        </label>
-        <div className="settings-actions">
-          <button onClick={handleApply}>Apply</button>
-          <button onClick={handleReset}>Reset</button>
-          <button onClick={onClose}>Close</button>
+          />
+          <label htmlFor="overflowFold" className="text-sm text-slate-700">
+            Enable overflow fold (clip long lines)
+          </label>
+        </div>
+        <div className="flex justify-end gap-2 mt-6">
+          <Button variant="ghost" onClick={handleReset}>
+            Reset
+          </Button>
+          <Button variant="primary" onClick={handleApply}>
+            Apply
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
-
-export default SettingsPanel;

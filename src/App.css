@@ -1,96 +1,28 @@
-/* src/App.css */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --bg-color: #ffffff;
-  --text-primary: #2c3e50;
-  --toolbar-bg: #f8f9fa;
-  --toolbar-border: #e9ecef;
+@layer base {
+  :root {
+    --bg-color: #ffffff;
+    --text-primary: #0f172a; /* slate-900 */
+    --toolbar-bg: #f8fafc; /* slate-50 */
+    --toolbar-border: #e2e8f0; /* slate-200 */
+  }
+
+  body {
+    @apply bg-white text-slate-900 font-sans overflow-hidden;
+  }
 }
 
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  color: var(--text-primary);
-  background: var(--bg-color);
-  overflow: hidden;
+/* Custom scrollbar for Webkit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
-
-.app-container { display: flex; flex-direction: column; height: 100vh; }
-
-.toolbar {
-  height: 48px;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 0 16px; background: var(--toolbar-bg); border-bottom: 1px solid var(--toolbar-border);
-  user-select: none;
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
 }
-.toolbar-group { display: flex; align-items: center; gap: 8px; }
-.toolbar button {
-  background: transparent; border: none; cursor: pointer; padding: 8px;
-  border-radius: 6px; color: #64748b; font-size: 16px; display: flex; align-items: center; gap: 6px;
-}
-.toolbar button:hover { background: rgba(0,0,0,0.05); color: var(--text-primary); }
-.toolbar button.dirty { color: #ef4444; }
-.mode-btn { background: #e2e8f0 !important; color: #334155 !important; font-size: 13px !important; font-weight: 600; padding: 6px 12px !important; }
-.divider { width: 1px; height: 20px; background: #cbd5e1; margin: 0 4px; }
-.file-name { font-size: 13px; font-weight: 500; margin-left: 8px; color: #334155; }
-
-.main-area { flex: 1; overflow: hidden; position: relative; display:flex; }
-.editor-wrapper { height: 100%; text-align: left; flex:1; }
-.preview-wrapper { height: 100%; overflow: auto; padding: 40px; background: #fff; flex:1; }
-
-.markdown-body { max-width: 800px; margin: 0 auto; line-height: 1.6; height:100%; box-sizing:border-box; overflow:auto; }
-.markdown-body h1, .markdown-body h2 { border-bottom: 1px solid #eaecef; padding-bottom: .3em; }
-.markdown-body table { border-collapse: collapse; width: 100%; }
-.markdown-body table th, .markdown-body table td { border: 1px solid #dfe2e5; padding: 6px 13px; }
-.markdown-body table tr:nth-child(2n) { background-color: #f6f8fa; }
-.markdown-body blockquote { border-left: .25em solid #dfe2e5; color: #6a737d; padding: 0 1em; margin: 0; }
-.markdown-body img { max-width: 100%; }
-
-@media print {
-  .toolbar { display: none; }
-  .preview-wrapper { padding: 0; overflow: visible; }
-  .markdown-body { max-width: 100%; }
-}
-
-/* Settings panel */
-.settings-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
-.settings-panel {
-  background: #fff;
-  padding: 16px;
-  border-radius: 8px;
-  width: 480px;
-  max-width: 95%;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-}
-.settings-panel h3 { margin-top: 0; }
-.settings-panel label { display:block; margin:8px 0; }
-.settings-panel input, .settings-panel textarea { width:100%; margin-top:6px; }
-.settings-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
-/* collapsed heading styles */
-.collapsed-section { display: none !important; }
-.markdown-body h1.collapsed,
-.markdown-body h2.collapsed,
-.markdown-body h3.collapsed,
-.markdown-body h4.collapsed,
-.markdown-body h5.collapsed,
-.markdown-body h6.collapsed { opacity: 0.85; }
-
-/* Overflow fold for editor: clip long lines instead of horizontal scroll */
-.editor-wrapper.overflow-fold .cm-scroller {
-  overflow-x: hidden !important;
-}
-.editor-wrapper.overflow-fold .cm-line {
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  display: block;
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded hover:bg-slate-400;
 }
