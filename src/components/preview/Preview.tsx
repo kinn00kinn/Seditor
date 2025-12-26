@@ -82,8 +82,8 @@ const CodeBlock: React.FC<{
             {copied ? <><FiCheck className="text-green-600"/> Copied</> : <><FiCopy /> Copy</>}
           </button>
       </div>
-      <pre className={`${className} !m-0 !bg-slate-900 !p-4 overflow-x-auto rounded-none`}>
-        <code className="text-sm text-slate-100 font-mono leading-relaxed">{codeText}</code>
+      <pre className="!m-0 !bg-slate-900 !p-4 overflow-x-auto rounded-none">
+        <code className={`${className} text-sm text-slate-100 font-mono leading-relaxed`}>{codeText}</code>
       </pre>
     </div>
   );

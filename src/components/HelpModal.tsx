@@ -55,7 +55,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
 
          <section>
           <h3 className="text-base font-semibold text-slate-900 mb-2">Settings</h3>
-          <p>
+          <div>
             Access settings via the cog icon to customize:
             <ul className="list-disc list-inside ml-2 mt-1 space-y-1">
                 <li>Font Family & Size</li>
@@ -63,7 +63,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                 <li>Overflow Folding (Horizontal clip)</li>
                 <li>Custom CSS injection</li>
             </ul>
-          </p>
+          </div>
         </section>
       </div>
     </Modal>
