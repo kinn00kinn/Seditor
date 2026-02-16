@@ -6,8 +6,6 @@ import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
 import mermaid from "mermaid";
 import Prism from "prismjs";
-// @ts-ignore
-// import { open } from "@tauri-apps/plugin-opener";
 
 // Additional plugins
 import remarkGemoji from "remark-gemoji";
@@ -15,14 +13,12 @@ import remarkSupersub from "remark-supersub";
 import remarkIns from "remark-ins";
 import remarkFlexibleMarkers from "remark-flexible-markers";
 import remarkSmartypants from "remark-smartypants";
-// import remarkDefinitionList from "remark-definition-list";
-// import remarkAbbr from "remark-abbr";
 import remarkDirective from "remark-directive";
 import { visit } from "unist-util-visit";
 
 
 import "katex/dist/katex.min.css";
-import "prismjs/themes/prism-tomorrow.css";
+// NOTE: prism-tomorrow.css removed — custom Zenn-style theme in App.css
 import "prismjs/components/prism-clike";
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-jsx";
@@ -32,8 +28,15 @@ import "prismjs/components/prism-python";
 import "prismjs/components/prism-markup";
 import "prismjs/components/prism-bash";
 import "prismjs/components/prism-json";
+import "prismjs/components/prism-css";
+import "prismjs/components/prism-yaml";
+import "prismjs/components/prism-markdown";
+import "prismjs/components/prism-rust";
+import "prismjs/components/prism-go";
+import "prismjs/components/prism-sql";
+import "prismjs/components/prism-diff";
 
-import { FiCopy, FiCheck, FiSidebar } from "react-icons/fi";
+import { FiCopy, FiCheck, FiSidebar, FiExternalLink } from "react-icons/fi";
 import { Outline } from "./Outline";
 
 interface PreviewProps {
@@ -71,15 +74,17 @@ const MermaidBlock: React.FC<{ code: string }> = ({ code }) => {
       });
     }
   }, [code]);
-  return <div ref={ref} className="my-4 flex justify-center" />;
+  return <div ref={ref} className="my-6 flex justify-center" />;
 };
 
+// ── Zenn-style Code Block ──
 const CodeBlock: React.FC<{
   className?: string;
   children: React.ReactNode;
 }> = ({ className, children }) => {
   const codeText = String(children).replace(/\n$/, "");
   const [copied, setCopied] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const preRef = useRef<HTMLDivElement>(null);
 
   const match = /language-(\w+)/.exec(className || "");
@@ -99,19 +104,31 @@ const CodeBlock: React.FC<{
   };
 
   return (
-    <div className="relative group my-6 rounded-lg overflow-hidden border border-slate-700 shadow-md" ref={preRef}>
-      <div className="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
-         <span className="text-xs font-semibold text-slate-400 uppercase">{displayLang || "text"}</span>
-         <button
+    <div
+      className="code-block-wrapper"
+      ref={preRef}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Language label + Copy button row */}
+      {(displayLang || true) && (
+        <div className="code-block-header">
+          <span className="code-block-lang">{displayLang || "text"}</span>
+          <button
             onClick={handleCopy}
-            className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-colors"
+            className={`code-block-copy ${hovered || copied ? "visible" : ""}`}
             title="Copy code"
           >
-            {copied ? <><FiCheck className="text-green-500"/> Copied</> : <><FiCopy /> Copy</>}
+            {copied ? (
+              <><FiCheck className="text-green-600" size={13} /> Copied!</>
+            ) : (
+              <><FiCopy size={13} /> Copy</>
+            )}
           </button>
-      </div>
-      <pre className="!m-0 !bg-[#2d2d2d] !p-4 overflow-x-auto rounded-none">
-        <code className={`${className} text-sm font-mono leading-relaxed text-gray-200`}>{codeText}</code>
+        </div>
+      )}
+      <pre className="code-block-pre">
+        <code className={`${className || ""} code-block-code`}>{codeText}</code>
       </pre>
     </div>
   );
@@ -170,16 +187,16 @@ export const Preview: React.FC<PreviewProps> = ({ content }) => {
     <div className="flex h-full relative">
        <button
         onClick={() => setShowOutline(!showOutline)}
-        className="absolute top-4 right-6 z-10 p-2 text-slate-400 hover:text-blue-600 bg-white/50 hover:bg-white rounded-md transition-all backdrop-blur-sm shadow-sm"
+        className="absolute top-4 right-6 z-10 p-2 text-slate-400 hover:text-blue-600 bg-white/70 hover:bg-white rounded-lg transition-all backdrop-blur-sm shadow-sm border border-slate-200/50"
         title={showOutline ? "Hide Outline" : "Show Outline"}
       >
-        <FiSidebar size={18} />
+        <FiSidebar size={16} />
       </button>
 
       <div className="flex-1 overflow-y-auto preview-scroll-container px-8 py-8 transition-all duration-300">
         <div 
           ref={previewRef}
-          className={`markdown-preview-view prose prose-slate max-w-3xl ${showOutline ? "mr-4" : "mx-auto"} ml-auto dark:prose-invert prose-headings:scroll-mt-20 prose-a:text-blue-600 hover:prose-a:text-blue-500 pb-32`} 
+          className={`markdown-preview-view prose prose-slate max-w-3xl ${showOutline ? "mr-4" : "mx-auto"} ml-auto dark:prose-invert prose-headings:scroll-mt-20 pb-32`} 
         >
           <ReactMarkdown
             remarkPlugins={[
@@ -204,35 +221,67 @@ export const Preview: React.FC<PreviewProps> = ({ content }) => {
                 if (!inline) {
                   return <CodeBlock className={className}>{children}</CodeBlock>;
                 }
-                return <code className={`${className} bg-slate-100 px-1 py-0.5 rounded text-sm text-pink-600 font-mono`} {...props}>{children}</code>;
+                // Zenn-style inline code
+                return (
+                  <code
+                    className="inline-code"
+                    {...props}
+                  >
+                    {children}
+                  </code>
+                );
               },
               a({ node, href, children, ...props }) {
-                 return (
-                    <a
-                      href={href}
-                      onClick={async (e) => {
-                         if (href) {
-                           if (href.startsWith("#")) return;
-                           
-                           e.preventDefault();
-                           // try {
-                             // await open(href);
-                           // } catch (err) {
-                             // console.error("Failed to open link:", err);
-                             try {
-                                window.open(href, "_blank");
-                             } catch (e2) {
-                               console.error("Fallback failed:", e2);
-                             }
-                           // }
-                         }
-                      }}
-                      className="cursor-pointer"
-                      {...props}
-                    >
-                      {children}
-                    </a>
-                 )
+                const isExternal = href && !href.startsWith("#") && !href.startsWith("/");
+                const isAnchor = href && href.startsWith("#");
+                return (
+                  <a
+                    href={href}
+                    onClick={(e) => {
+                      if (!href) return;
+                      
+                      if (isAnchor) {
+                        e.preventDefault();
+                        const targetId = href.slice(1);
+                        const el = document.getElementById(targetId);
+                        if (el) {
+                          el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }
+                        return;
+                      }
+                      
+                      if (isExternal) {
+                        e.preventDefault();
+                        try {
+                          window.open(href, "_blank", "noopener,noreferrer");
+                        } catch (err) {
+                          console.error("Failed to open link:", err);
+                        }
+                      }
+                    }}
+                    className="link-styled"
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    {...props}
+                  >
+                    {children}
+                    {isExternal && (
+                      <FiExternalLink
+                        className="inline-block ml-0.5 align-text-top"
+                        size={12}
+                        style={{ verticalAlign: "text-top", display: "inline", marginBottom: "1px" }}
+                      />
+                    )}
+                  </a>
+                );
+              },
+              // Wrap tables in overflow container
+              table({ node, children, ...props }) {
+                return (
+                  <div className="table-overflow-wrapper">
+                    <table {...props}>{children}</table>
+                  </div>
+                );
               },
               h1: ({ node, ...props }) => <h1 {...props} />,
               h2: ({ node, ...props }) => <h2 {...props} />,
@@ -248,7 +297,7 @@ export const Preview: React.FC<PreviewProps> = ({ content }) => {
       </div>
       
       <div className={`
-        flex-shrink-0 border-l border-slate-200 h-full overflow-y-auto bg-white/50
+        flex-shrink-0 border-l border-slate-200/80 h-full overflow-y-auto bg-slate-50/50
         transition-all duration-300 ease-in-out
         ${showOutline ? "w-64 opacity-100 translate-x-0" : "w-0 opacity-0 translate-x-10 p-0 border-none"}
       `}>
