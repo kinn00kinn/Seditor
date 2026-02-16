@@ -4,68 +4,70 @@
 ![React](https://img.shields.io/badge/React-v18-61DAFB?logo=react&logoColor=black)
 ![Rust](https://img.shields.io/badge/Rust-1.70%2B-000000?logo=rust&logoColor=white)
 
-**Seditor** は、"サクラエディタ" のような軽快な動作と、"Obsidian" のようなリッチなプレビュー機能を兼ね備えた、Tauri 製の次世代 Markdown エディタです。
-「起動 1 秒以内」の爆速動作と、ローカルファーストなデータ管理を重視して開発されました。
+![](./screenshot.png)
 
-## ✨ Features
+サクラエディタみたいにサッと起動して、Obsidian みたいにきれいにプレビューできる。そんなMarkdownエディタが欲しくて作りました。
 
-- **⚡ Blazing Fast:** Tauri (Rust) バックエンドによる圧倒的な起動速度と省メモリ動作。
-- **🔄 Dual Mode:** `Ctrl+E` で瞬時に切り替わる「Source Mode (編集)」と「Reading Mode (閲覧)」。
-- **📝 Rich Markdown Support:**
-  - **数式:** KaTeX 対応 ($E=mc^2$)
-  - **ダイアグラム:** Mermaid 対応（フローチャート、シーケンス図など）
-  - **表:** GFM (GitHub Flavored Markdown) テーブル対応
-  - **画像:** ローカル/Web 画像のプレビュー
-- **🔍 Advanced Search:** 正規表現（Regex）に対応した検索・置換機能。
-- **⌨️ Keyboard Driven:** マウスに触れずに主要な操作が完結するキーバインド設計。
-- **📄 File Associations:** `.md` ファイルに関連付け可能。エクスプローラーから直接起動。
-- **🖨️ Export:** 閲覧モードからの PDF 保存/印刷機能。
+Tauri (Rust) ベースなので起動は一瞬、メモリもほとんど食いません。ファイルはすべてローカル管理。
 
-## 🚀 Shortcuts
+## 特徴
 
-| Key                    | Action          | Description                                   |
-| :--------------------- | :-------------- | :-------------------------------------------- |
-| `Ctrl` + `E`           | **Toggle Mode** | 編集モードとプレビューモードを切り替えます    |
-| `Ctrl` + `S`           | **Save**        | 上書き保存（新規の場合はダイアログ表示）      |
-| `Ctrl` + `Shift` + `S` | **Save As**     | 名前を付けて保存                              |
-| `Ctrl` + `O`           | **Open**        | ファイルを開く                                |
-| `Ctrl` + `F`           | **Find**        | 検索パネルを表示（正規表現対応）              |
-| `Ctrl` + `P`           | **Print / PDF** | 印刷または PDF として保存（プレビュー時のみ） |
-| `Tab`                  | **Indent**      | リストのネスト（字下げ）                      |
-| `Shift` + `Tab`        | **Unindent**    | ネスト解除                                    |
+- **とにかく軽い** — Tauri + Rust で起動1秒以内。Electron 系とは次元が違います
+- **編集↔プレビュー切り替え** — `Ctrl+E` で一発。書きながら確認がスムーズ
+- **Markdownフル対応**
+  - 数式 (KaTeX)、図 (Mermaid)、GFMテーブル、絵文字
+  - コードブロックのシンタックスハイライト + コピーボタン
+  - 画像プレビュー（ローカル/Web どちらも）
+- **検索・置換** — 正規表現にも対応
+- **キーボード操作で完結** — マウスなしでほぼ全操作OK
+- **PDF出力** — プレビューモードから `Ctrl+P` で印刷 / PDF保存
+- **`.md` ファイル関連付け** — エクスプローラーからダブルクリックで開ける
 
-## 🛠️ Tech Stack
+## ショートカット
 
-- **Core:** [Tauri v2](https://tauri.app/) (Rust)
-- **Frontend:** React + TypeScript + Vite
-- **Editor Engine:** CodeMirror 6
-- **Renderer:** react-markdown, remark-gfm, remark-math, rehype-katex, mermaid
+| キー | 操作 | 説明 |
+| :--- | :--- | :--- |
+| `Ctrl+E` | モード切替 | 編集 ↔ プレビュー |
+| `Ctrl+S` | 保存 | 上書き保存（新規はダイアログ） |
+| `Ctrl+Shift+S` | 名前を付けて保存 | |
+| `Ctrl+O` | 開く | ファイル選択ダイアログ |
+| `Ctrl+F` | 検索 | 正規表現対応 |
+| `Ctrl+P` | 印刷 / PDF | プレビューモード時 |
+| `Tab` / `Shift+Tab` | インデント調整 | リストのネスト操作 |
 
-## 💻 Development
+## 技術構成
 
-### Prerequisites
+| レイヤー | 使用技術 |
+| :--- | :--- |
+| コア | [Tauri v2](https://tauri.app/) (Rust) |
+| フロントエンド | React + TypeScript + Vite |
+| エディタ | CodeMirror 6 |
+| レンダリング | react-markdown, remark-gfm, remark-math, rehype-katex, Mermaid |
+| スタイル | Tailwind CSS + Prism.js (Zenn風カスタムテーマ) |
+
+## 開発
+
+### 必要なもの
 
 - Node.js (LTS)
 - Rust (Cargo)
-- C++ Build Tools (Windows)
+- C++ Build Tools (Windowsの場合)
 
-### Setup & Run
+### セットアップ
 
 ```bash
-# Install dependencies
 npm install
-
-# Run in development mode
 npm run tauri dev
 ```
 
-### Build
+### ビルド
 
 ```bash
-# Build for production (exe/msi)
 npm run tauri build
 ```
 
-## 📦 Installation
+`dist/` にインストーラー (`.exe` / `.msi`) が生成されます。
 
-Releases ページからインストーラー (`.exe` または `.msi`) をダウンロードして実行してください。
+## インストール
+
+[Releases](../../releases) ページからインストーラーをダウンロードして実行してください。
