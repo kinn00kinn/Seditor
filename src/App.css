@@ -14,10 +14,10 @@
     --bg-primary: #eff1f5;
     --bg-primary-alt: #e6e9ef;
     --bg-secondary: #e6e9ef;
-    --text-primary: #4c4f69;
-    --text-normal: #4c4f69;
-    --text-muted: #6c6f85;
-    --text-faint: #9ca0b0;
+    --text-primary: #1e1e2e;
+    --text-normal: #1e1e2e;
+    --text-muted: #4c4f69;
+    --text-faint: #7c7f93;
     --toolbar-glass: rgba(239, 241, 245, 0.85);
     --toolbar-border: rgba(188, 192, 204, 0.6);
 
@@ -31,15 +31,15 @@
     --code-bg: #e6e9ef;
     --code-border: #bcc0cc;
     --code-header-bg: #dce0e8;
-    --code-text: #4c4f69;
-    --code-comment: #8c8fa1;
+    --code-text: #1e1e2e;
+    --code-comment: #7c7f93;
     --code-keyword: #d20f39;
     --code-string: #1e66f5;
     --code-function: #8839ef;
     --code-number: #fe640b;
     --code-operator: #04a5e5;
     --code-class: #df8e1d;
-    --code-punctuation: #4c4f69;
+    --code-punctuation: #1e1e2e;
     --code-property: #1e66f5;
     --code-tag: rgb(22, 162, 33);
     --code-attr: #1e66f5;

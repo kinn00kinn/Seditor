@@ -34,7 +34,7 @@ export const Outline: React.FC<OutlineProps> = ({
             >
               {/* Active indicator line */}
               {isActive && (
-                <div className="absolute left-0 top-1 bottom-1 w-[2px] rounded-full" style={{ backgroundColor: 'rgb(22, 162, 33)' }} />
+                <div className="absolute left-0 top-1 bottom-1 w-[2px] rounded-full" style={{ backgroundColor: 'var(--accent)' }} />
               )}
               <button
                 onClick={() => onClick(h.id)}

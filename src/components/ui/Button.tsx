@@ -43,7 +43,7 @@ export const Button: React.FC<CombinedProps> = ({
       title={tooltip}
       style={
         variant === "primary"
-          ? { backgroundColor: "rgb(22, 162, 33)" }
+          ? { backgroundColor: "var(--accent)" }
           : variant === "outline"
           ? { borderColor: "var(--background-modifier-border)", color: "var(--text-normal)" }
           : { color: "var(--text-muted)" }

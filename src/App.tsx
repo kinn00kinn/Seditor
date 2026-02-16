@@ -138,7 +138,7 @@ function App() {
             />
             <div className="text-sm font-medium ml-2 select-none" style={{ color: 'var(--text-muted)' }}>
               {currentPath ? currentPath.split(/[\\/]/).pop() : "Untitled"}
-              {isDirty && <span className="ml-1" style={{ color: 'rgb(22, 162, 33)' }}>●</span>}
+              {isDirty && <span className="ml-1" style={{ color: 'var(--accent)' }}>●</span>}
             </div>
           </ToolbarGroup>
           
