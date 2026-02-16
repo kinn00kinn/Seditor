@@ -121,6 +121,7 @@ function App() {
   }, []);
 
   return (
+    <>
     <Layout
       header={
         <Toolbar>
@@ -190,14 +191,6 @@ function App() {
             </Button>
           </ToolbarGroup>
           
-          <SettingsPanel
-            isOpen={showSettings}
-            onClose={() => setShowSettings(false)}
-          />
-          <HelpModal
-            isOpen={showHelp}
-            onClose={() => setShowHelp(false)}
-           />
         </Toolbar>
       }
     >
@@ -236,6 +229,17 @@ function App() {
         )}
       </AnimatePresence>
     </Layout>
+
+    {/* Modals — rendered outside Layout to avoid clipping */}
+    <SettingsPanel
+      isOpen={showSettings}
+      onClose={() => setShowSettings(false)}
+    />
+    <HelpModal
+      isOpen={showHelp}
+      onClose={() => setShowHelp(false)}
+    />
+  </>
   );
 }
 
