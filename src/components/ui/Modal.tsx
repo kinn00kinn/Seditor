@@ -17,18 +17,25 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 m-4"
+        className="w-full max-w-lg p-6 m-4 overflow-y-auto"
+        style={{
+          backgroundColor: '#ffffff',
+          border: '1px solid var(--background-modifier-border)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.18)',
+          maxHeight: '85vh',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+          <h3 className="text-lg font-semibold" style={{ color: 'var(--text-normal)' }}>{title}</h3>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600"
+            className="hover:opacity-70 transition-opacity"
+            style={{ color: 'var(--text-faint)' }}
           >
             <svg
               className="w-5 h-5"

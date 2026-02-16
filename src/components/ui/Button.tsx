@@ -19,31 +19,49 @@ export const Button: React.FC<CombinedProps> = ({
   icon,
   children,
   tooltip,
+  disabled,
   ...props
 }) => {
   const baseStyles =
-    "flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed select-none";
+    "flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium transition-all duration-150 focus:outline-none select-none cursor-pointer";
+
+  const disabledStyles = "opacity-40 cursor-not-allowed";
 
   const variants = {
     ghost: cn(
-      "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-      active && "bg-slate-200 text-slate-900 font-semibold"
+      "hover:bg-[rgba(30,30,46,0.08)]",
+      active && "bg-[rgba(30,30,46,0.12)] font-semibold"
     ),
-    primary:
-      "bg-slate-900 text-white hover:bg-slate-800 shadow-sm border border-transparent",
-    danger: "text-red-500 hover:bg-red-50 hover:text-red-700",
-    outline: "border border-slate-200 text-slate-700 hover:bg-slate-50",
+    primary: "text-white shadow-sm",
+    danger: "text-red-600 hover:bg-red-50",
+    outline: "border hover:bg-[rgba(30,30,46,0.05)]",
+  };
+
+  const getStyle = (): React.CSSProperties => {
+    if (variant === "primary") {
+      return { backgroundColor: "var(--accent)", color: "#fff" };
+    }
+    if (variant === "outline") {
+      return { borderColor: "var(--background-modifier-border)", color: "var(--text-normal)" };
+    }
+    if (variant === "danger") {
+      return {};
+    }
+    // ghost
+    return { color: active ? "var(--text-normal)" : "var(--text-muted)" };
   };
 
   return (
     <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.96 }}
-      className={cn(baseStyles, variants[variant], className)}
+      whileHover={disabled ? undefined : { scale: 1.04 }}
+      whileTap={disabled ? undefined : { scale: 0.95 }}
+      className={cn(baseStyles, variants[variant], disabled && disabledStyles, className)}
       title={tooltip}
-      {...(props as any)} // Cast to any to avoid complex type intersection issues with framer-motion
+      style={getStyle()}
+      disabled={disabled}
+      {...(props as any)}
     >
-      {icon && <span className="text-lg">{icon}</span>}
+      {icon && <span className="text-base">{icon}</span>}
       {children}
     </motion.button>
   );

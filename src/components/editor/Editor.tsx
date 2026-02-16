@@ -37,23 +37,23 @@ const editorTheme = EditorView.theme({
   },
   ".cm-scroller": {
     fontFamily:
-      '"JetBrains Mono", "Fira Code", "Source Code Pro", Consolas, monospace',
+      '"源ノ角ゴシック", "JetBrains Mono", "Fira Code", "Source Code Pro", Consolas, monospace',
     lineHeight: "1.6",
   },
   ".cm-content": {
-    maxWidth: "800px", // Limit width for readability
+    maxWidth: "800px",
     margin: "0 auto",
-    padding: "40px 24px 300px", // More breathing room
+    padding: "40px 24px 300px",
   },
   ".cm-gutters": {
     backgroundColor: "transparent",
     borderRight: "none",
-    color: "#94a3b8", // slate-400
+    color: "var(--text-faint)",
     paddingRight: "16px",
   },
   ".cm-activeLineGutter": {
     backgroundColor: "transparent",
-    color: "#0f172a", // slate-900
+    color: "var(--text-normal)",
   },
   ".cm-lineNumbers .cm-gutterElement": {
     paddingLeft: "12px",
@@ -61,13 +61,13 @@ const editorTheme = EditorView.theme({
   },
   "&.cm-focused": { outline: "none" },
   ".cm-activeLine": {
-    backgroundColor: "rgba(241, 245, 249, 0.5)", // slate-100 with opacity
+    backgroundColor: "var(--active-line-bg)",
   },
   ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
-    backgroundColor: "rgba(203, 213, 225, 0.6) !important", // slate-300
+    backgroundColor: "rgba(22, 162, 33, 0.15) !important",
   },
   ".cm-cursor": {
-    borderLeftColor: "#0f172a", // slate-900
+    borderLeftColor: "var(--text-normal)",
     borderLeftWidth: "2px",
   },
 });

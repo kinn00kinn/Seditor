@@ -11,10 +11,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({ children, className = "" }) =>
     <div
       className={cn(
         "h-14 flex items-center justify-between px-4 sticky top-0 z-10",
-        "bg-white/80 backdrop-blur-md border-b border-slate-200/60",
-        "transition-all duration-300 ease-in-out",
+        "backdrop-blur-md border-b transition-all duration-300 ease-in-out",
         className
       )}
+      style={{
+        backgroundColor: 'var(--toolbar-glass)',
+        borderBottomColor: 'var(--toolbar-border)',
+      }}
     >
       {children}
     </div>
@@ -29,5 +32,5 @@ export const ToolbarGroup: React.FC<{ children: React.ReactNode; className?: str
 };
 
 export const ToolbarDivider: React.FC = () => {
-  return <div className="w-px h-6 bg-slate-200 mx-2" />;
+  return <div className="w-px h-6 mx-2" style={{ backgroundColor: 'var(--background-modifier-border)' }} />;
 };
