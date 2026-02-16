@@ -19,38 +19,49 @@ export const Button: React.FC<CombinedProps> = ({
   icon,
   children,
   tooltip,
+  disabled,
   ...props
 }) => {
   const baseStyles =
-    "flex items-center justify-center gap-2 px-3 py-2 rounded-none text-sm font-medium transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed select-none";
+    "flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium transition-all duration-150 focus:outline-none select-none cursor-pointer";
+
+  const disabledStyles = "opacity-40 cursor-not-allowed";
 
   const variants = {
     ghost: cn(
-      "hover:bg-[rgba(76,79,105,0.1)]",
-      active && "bg-[rgba(76,79,105,0.15)] font-semibold"
+      "hover:bg-[rgba(30,30,46,0.08)]",
+      active && "bg-[rgba(30,30,46,0.12)] font-semibold"
     ),
-    primary:
-      "text-white shadow-sm border border-transparent",
-    danger: "text-red-500 hover:bg-red-50/50 hover:text-red-700",
-    outline: "border hover:bg-[rgba(76,79,105,0.06)]",
+    primary: "text-white shadow-sm",
+    danger: "text-red-600 hover:bg-red-50",
+    outline: "border hover:bg-[rgba(30,30,46,0.05)]",
+  };
+
+  const getStyle = (): React.CSSProperties => {
+    if (variant === "primary") {
+      return { backgroundColor: "var(--accent)", color: "#fff" };
+    }
+    if (variant === "outline") {
+      return { borderColor: "var(--background-modifier-border)", color: "var(--text-normal)" };
+    }
+    if (variant === "danger") {
+      return {};
+    }
+    // ghost
+    return { color: active ? "var(--text-normal)" : "var(--text-muted)" };
   };
 
   return (
     <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.96 }}
-      className={cn(baseStyles, variants[variant], className)}
+      whileHover={disabled ? undefined : { scale: 1.04 }}
+      whileTap={disabled ? undefined : { scale: 0.95 }}
+      className={cn(baseStyles, variants[variant], disabled && disabledStyles, className)}
       title={tooltip}
-      style={
-        variant === "primary"
-          ? { backgroundColor: "var(--accent)" }
-          : variant === "outline"
-          ? { borderColor: "var(--background-modifier-border)", color: "var(--text-normal)" }
-          : { color: "var(--text-muted)" }
-      }
+      style={getStyle()}
+      disabled={disabled}
       {...(props as any)}
     >
-      {icon && <span className="text-lg">{icon}</span>}
+      {icon && <span className="text-base">{icon}</span>}
       {children}
     </motion.button>
   );
