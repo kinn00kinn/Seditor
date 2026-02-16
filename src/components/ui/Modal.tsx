@@ -21,8 +21,13 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="shadow-xl w-full max-w-md p-6 m-4"
-        style={{ backgroundColor: 'var(--bg-primary)', borderRadius: 0 }}
+        className="w-full max-w-lg p-6 m-4 overflow-y-auto"
+        style={{
+          backgroundColor: '#ffffff',
+          border: '1px solid var(--background-modifier-border)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.18)',
+          maxHeight: '85vh',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
