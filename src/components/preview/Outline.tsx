@@ -34,7 +34,7 @@ export const Outline: React.FC<OutlineProps> = ({
             >
               {/* Active indicator line */}
               {isActive && (
-                <div className="absolute left-0 top-1 bottom-1 w-[2px] bg-blue-500 rounded-full" />
+                <div className="absolute left-0 top-1 bottom-1 w-[2px] rounded-full" style={{ backgroundColor: 'rgb(22, 162, 33)' }} />
               )}
               <button
                 onClick={() => onClick(h.id)}
@@ -43,8 +43,8 @@ export const Outline: React.FC<OutlineProps> = ({
                   text-[13px] leading-relaxed py-1 rounded-md
                   transition-colors duration-150
                   ${isActive
-                    ? "text-blue-600 font-medium pl-3"
-                    : "text-slate-500 hover:text-slate-800 hover:bg-slate-100/60 pl-3"
+                    ? "font-medium pl-3"
+                    : "hover:bg-[rgba(76,79,105,0.08)] pl-3"
                   }
                 `}
                 style={{ paddingLeft: `${Math.max(12, (h.level - 1) * 12)}px` }}

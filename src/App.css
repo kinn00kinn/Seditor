@@ -4,53 +4,65 @@
 
 @layer base {
   :root {
-    --bg-color: #ffffff;
-    --text-primary: #0f172a;
-    /* slate-900 */
-    --toolbar-glass: rgba(255, 255, 255, 0.8);
-    --toolbar-border: rgba(226, 232, 240, 0.6);
-    /* slate-200 with opacity */
+    /* ── メインカラー ── */
+    --accent: rgb(22, 162, 33);
+    --accent-light: rgba(22, 162, 33, 0.15);
+    --accent-hover: rgb(18, 138, 28);
 
-    /* Obsidian Theme Compatibility */
-    --text-normal: #0f172a;
-    /* slate-900 */
-    --interactive-accent: #2563eb;
-    /* blue-600 */
-    --background-modifier-border: #e2e8f0;
-    /* slate-200 */
-    --text-accent: #3b82f6;
-    /* blue-500 */
-    --text-faint: #94a3b8;
-    /* slate-400 */
-    --text-muted: #64748b;
-    /* slate-500 */
+    /* ── ベース ── */
+    --bg-color: #eff1f5;
+    --bg-primary: #eff1f5;
+    --bg-primary-alt: #e6e9ef;
+    --bg-secondary: #e6e9ef;
+    --text-primary: #4c4f69;
+    --text-normal: #4c4f69;
+    --text-muted: #6c6f85;
+    --text-faint: #9ca0b0;
+    --toolbar-glass: rgba(239, 241, 245, 0.85);
+    --toolbar-border: rgba(188, 192, 204, 0.6);
 
-    /* Zenn-style Code Theme */
-    --code-bg: #f6f8fa;
-    --code-border: #e3e8ee;
-    --code-header-bg: #edf0f4;
-    --code-text: #24292f;
-    --code-comment: #6e7781;
-    --code-keyword: #cf222e;
-    --code-string: #0a3069;
-    --code-function: #8250df;
-    --code-number: #0550ae;
-    --code-operator: #cf222e;
-    --code-class: #953800;
-    --code-punctuation: #24292f;
-    --code-property: #0550ae;
-    --code-tag: #116329;
-    --code-attr: #0550ae;
-    --code-builtin: #0550ae;
-    --code-boolean: #0550ae;
+    /* ── Obsidian互換 ── */
+    --interactive-accent: rgb(22, 162, 33);
+    --background-modifier-border: #bcc0cc;
+    --background-modifier-hover: rgba(76, 79, 105, 0.08);
+    --text-accent: rgb(22, 162, 33);
+
+    /* ── コードブロック ── */
+    --code-bg: #e6e9ef;
+    --code-border: #bcc0cc;
+    --code-header-bg: #dce0e8;
+    --code-text: #4c4f69;
+    --code-comment: #8c8fa1;
+    --code-keyword: #d20f39;
+    --code-string: #1e66f5;
+    --code-function: #8839ef;
+    --code-number: #fe640b;
+    --code-operator: #04a5e5;
+    --code-class: #df8e1d;
+    --code-punctuation: #4c4f69;
+    --code-property: #1e66f5;
+    --code-tag: rgb(22, 162, 33);
+    --code-attr: #1e66f5;
+    --code-builtin: #fe640b;
+    --code-boolean: #fe640b;
+
+    /* ── テーブル ── */
+    --table-header-bg: #dce0e8;
+    --table-row-alt-bg: #e6e9ef;
+    --active-line-bg: rgba(22, 162, 33, 0.06);
   }
 
   body {
-    @apply bg-white text-slate-900 font-sans overflow-hidden antialiased h-screen;
+    @apply font-sans overflow-hidden antialiased h-screen;
+    background-color: var(--bg-primary);
+    color: var(--text-normal);
   }
 }
 
-/* Custom scrollbar */
+/* ========================================
+   Scrollbar
+   ======================================== */
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -61,10 +73,18 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300/80 rounded-full hover:bg-slate-400 transition-colors;
+  background: var(--text-faint);
+  border-radius: 999px;
 }
 
-/* Overflow Folder (Clip lines) */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ========================================
+   Editor — Overflow / Fold
+   ======================================== */
+
 .overflow-fold .cm-content {
   white-space: pre !important;
   overflow-wrap: normal !important;
@@ -75,9 +95,8 @@
   text-overflow: clip !important;
 }
 
-/* VS Code style fold gutter */
 .fold-icon {
-  color: #6e7681;
+  color: var(--text-faint);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -86,37 +105,38 @@
 }
 
 .fold-icon:hover {
-  color: #aeb4bc;
+  color: var(--text-muted);
 }
 
-/* Directives */
+/* ========================================
+   Directives (::: warning)
+   ======================================== */
+
 .directive.warning {
-  border-left: 4px solid #eab308;
-  background-color: #fefce8;
+  border-left: 4px solid #df8e1d;
+  background-color: rgba(223, 142, 29, 0.08);
   padding: 1rem;
   margin: 1rem 0;
-  border-radius: 0.25rem;
+  border-radius: 0;
 }
 
 .directive.warning p {
   margin: 0;
-  color: #854d0e;
+  color: #4c4f69;
 }
 
 /* ========================================
-   Zenn-style Syntax Highlighting (Light)
+   Syntax Highlighting (Catppuccin Latte風)
    ======================================== */
 
-/* Override Prism defaults completely */
 code[class*="language-"],
 pre[class*="language-"] {
   color: var(--code-text) !important;
   background: none !important;
   text-shadow: none !important;
-  font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace !important;
+  font-family: "源ノ角ゴシック", "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, monospace !important;
   font-size: 0.875rem !important;
   line-height: 1.7 !important;
-  direction: ltr;
   text-align: left;
   white-space: pre;
   word-spacing: normal;
@@ -129,7 +149,6 @@ pre[class*="language-"] {
   overflow: auto;
 }
 
-/* Tokens */
 .token.comment,
 .token.prolog,
 .token.doctype,
@@ -190,13 +209,12 @@ pre[class*="language-"] {
 
 .token.deleted {
   text-decoration: line-through;
-  color: #cf222e !important;
+  color: #d20f39 !important;
 }
 
 .token.inserted {
-  border-bottom: 1px dotted #24292f;
   text-decoration: none;
-  color: #116329 !important;
+  color: rgb(22, 162, 33) !important;
 }
 
 .token.italic {
@@ -227,24 +245,25 @@ pre[class*="language-"] {
 }
 
 /* ========================================
-   Prose Enhancements (Zenn-style)
+   Prose (Preview)
    ======================================== */
 
-/* Blockquotes — Zenn style */
+/* Blockquotes */
 .prose blockquote {
-  border-left: 3px solid #d0d7de !important;
-  background-color: transparent !important;
-  color: #656d76 !important;
+  border-left: 3px solid var(--accent) !important;
+  background-color: var(--accent-light) !important;
+  color: var(--text-normal) !important;
   font-style: normal !important;
-  padding: 0.1em 0 0.1em 1em !important;
+  padding: 0.5em 1em !important;
   margin: 1.5em 0 !important;
+  border-radius: 0 !important;
 }
 
 .prose blockquote p {
-  color: #656d76 !important;
+  color: var(--text-normal) !important;
 }
 
-/* Tables — clean Zenn style */
+/* Tables */
 .prose table {
   border-collapse: collapse !important;
   width: 100% !important;
@@ -252,53 +271,53 @@ pre[class*="language-"] {
 }
 
 .prose thead th {
-  background-color: #f6f8fa !important;
-  border: 1px solid #d0d7de !important;
+  background-color: var(--table-header-bg) !important;
+  border: 1px solid var(--background-modifier-border) !important;
   padding: 0.625rem 1rem !important;
   font-weight: 600 !important;
   text-align: left !important;
-  color: #24292f !important;
+  color: var(--text-normal) !important;
 }
 
 .prose tbody td {
-  border: 1px solid #d0d7de !important;
+  border: 1px solid var(--background-modifier-border) !important;
   padding: 0.625rem 1rem !important;
-  color: #24292f !important;
+  color: var(--text-normal) !important;
 }
 
 .prose tbody tr:nth-child(even) {
-  background-color: #f6f8fa !important;
+  background-color: var(--table-row-alt-bg) !important;
 }
 
-/* HR — subtle gradient line */
+/* HR */
 .prose hr {
   border: none !important;
   height: 1px !important;
-  background: linear-gradient(to right, transparent, #d0d7de 20%, #d0d7de 80%, transparent) !important;
+  background: linear-gradient(to right, transparent, var(--background-modifier-border) 20%, var(--background-modifier-border) 80%, transparent) !important;
   margin: 2.5em 0 !important;
 }
 
-/* Images — soft shadow + rounded */
+/* Images */
 .prose img {
-  border-radius: 8px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
   max-width: 100%;
   height: auto;
 }
 
-/* Links — Zenn style (blue, underline on hover) */
+/* Links — accent color */
 .prose a {
-  color: #0969da !important;
+  color: var(--accent) !important;
   text-decoration: none !important;
-  border-bottom: 1px solid transparent !important;
-  transition: border-color 0.15s ease !important;
+  transition: color 0.15s ease !important;
 }
 
 .prose a:hover {
-  border-bottom-color: #0969da !important;
+  color: var(--accent-hover) !important;
+  text-decoration: underline !important;
 }
 
-/* Long word break */
+/* Word break */
 .prose {
   word-break: break-word !important;
   overflow-wrap: break-word !important;
@@ -312,14 +331,14 @@ pre[class*="language-"] {
 }
 
 /* ========================================
-   Zenn-style Code Block Component
+   Code Block Component
    ======================================== */
 
 .code-block-wrapper {
   position: relative;
   margin: 1.5em 0;
   border: 1px solid var(--code-border);
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
   background: var(--code-bg);
 }
@@ -336,7 +355,7 @@ pre[class*="language-"] {
 .code-block-lang {
   font-size: 12px;
   font-weight: 600;
-  color: #656d76;
+  color: var(--text-muted);
   text-transform: lowercase;
   letter-spacing: 0.02em;
   font-family: "Inter", system-ui, sans-serif;
@@ -347,10 +366,10 @@ pre[class*="language-"] {
   align-items: center;
   gap: 4px;
   padding: 3px 8px;
-  border-radius: 6px;
+  border-radius: 0;
   font-size: 11px;
   font-weight: 500;
-  color: #656d76;
+  color: var(--text-muted);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -364,8 +383,8 @@ pre[class*="language-"] {
 }
 
 .code-block-copy:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: #24292f;
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
 }
 
 .code-block-pre {
@@ -378,7 +397,7 @@ pre[class*="language-"] {
 
 .code-block-code {
   font-size: 0.855rem !important;
-  font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, monospace !important;
+  font-family: "源ノ角ゴシック", "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, monospace !important;
   line-height: 1.7 !important;
   color: var(--code-text) !important;
   background: none !important;
@@ -386,25 +405,25 @@ pre[class*="language-"] {
 }
 
 /* ========================================
-   Inline Code — Zenn-style
+   Inline Code
    ======================================== */
 
 .inline-code {
-  background-color: #eff1f3 !important;
-  color: #24292f !important;
-  font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, monospace !important;
+  background-color: var(--code-bg) !important;
+  color: var(--code-text) !important;
+  font-family: "源ノ角ゴシック", "JetBrains Mono", "Fira Code", Consolas, monospace !important;
   font-size: 0.88em !important;
   padding: 0.15em 0.4em !important;
-  border-radius: 4px !important;
+  border-radius: 0 !important;
   font-weight: 400 !important;
-  border: none !important;
+  border: 1px solid var(--code-border) !important;
   word-break: break-all;
 }
 
-/* Override prose default inline code */
+/* Override prose defaults */
 .prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-  background-color: #eff1f3 !important;
-  color: #24292f !important;
+  background-color: var(--code-bg) !important;
+  color: var(--code-text) !important;
   font-weight: 400 !important;
 }
 
@@ -418,12 +437,12 @@ pre[class*="language-"] {
    ======================================== */
 
 .link-styled {
-  color: #0969da !important;
+  color: var(--accent) !important;
   text-decoration: none !important;
   transition: color 0.15s ease !important;
 }
 
 .link-styled:hover {
-  color: #0550ae !important;
+  color: var(--accent-hover) !important;
   text-decoration: underline !important;
 }

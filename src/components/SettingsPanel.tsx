@@ -86,12 +86,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Settings">
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-muted)' }}>
             Font Family
           </label>
           <input
             type="text"
-            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-none focus:outline-none focus:ring-2"
+            style={{ borderColor: 'var(--background-modifier-border)', backgroundColor: 'var(--bg-primary-alt)', color: 'var(--text-normal)', boxShadow: 'none' }}
             value={fontFamily}
             onChange={(e) => setFontFamily(e.target.value)}
           />
@@ -102,7 +103,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           </label>
           <input
             type="number"
-            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-none focus:outline-none focus:ring-2"
+            style={{ borderColor: 'var(--background-modifier-border)', backgroundColor: 'var(--bg-primary-alt)', color: 'var(--text-normal)', boxShadow: 'none' }}
             value={fontSize}
             onChange={(e) => setFontSize(Number(e.target.value) || 16)}
           />
@@ -122,11 +124,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <input
             type="checkbox"
             id="lineWrap"
-            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+            className="rounded-none"
+            style={{ accentColor: 'rgb(22, 162, 33)' }}
             checked={lineWrap}
             onChange={(e) => setLineWrap(e.target.checked)}
           />
-          <label htmlFor="lineWrap" className="text-sm text-slate-700">
+          <label htmlFor="lineWrap" className="text-sm" style={{ color: 'var(--text-normal)' }}>
             Enable line wrap
           </label>
         </div>
@@ -134,11 +137,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <input
             type="checkbox"
             id="overflowFold"
-            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+            className="rounded-none"
+            style={{ accentColor: 'rgb(22, 162, 33)' }}
             checked={overflowFold}
             onChange={(e) => setOverflowFold(e.target.checked)}
           />
-          <label htmlFor="overflowFold" className="text-sm text-slate-700">
+          <label htmlFor="overflowFold" className="text-sm" style={{ color: 'var(--text-normal)' }}>
             Enable overflow fold (clip long lines)
           </label>
         </div>

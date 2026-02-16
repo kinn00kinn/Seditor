@@ -187,7 +187,8 @@ export const Preview: React.FC<PreviewProps> = ({ content }) => {
     <div className="flex h-full relative">
        <button
         onClick={() => setShowOutline(!showOutline)}
-        className="absolute top-4 right-6 z-10 p-2 text-slate-400 hover:text-blue-600 bg-white/70 hover:bg-white rounded-lg transition-all backdrop-blur-sm shadow-sm border border-slate-200/50"
+        className="absolute top-4 right-6 z-10 p-2 rounded-none transition-all backdrop-blur-sm shadow-sm border"
+        style={{ color: 'var(--text-faint)', backgroundColor: 'var(--toolbar-glass)', borderColor: 'var(--toolbar-border)' }}
         title={showOutline ? "Hide Outline" : "Show Outline"}
       >
         <FiSidebar size={16} />
@@ -297,10 +298,12 @@ export const Preview: React.FC<PreviewProps> = ({ content }) => {
       </div>
       
       <div className={`
-        flex-shrink-0 border-l border-slate-200/80 h-full overflow-y-auto bg-slate-50/50
+        flex-shrink-0 border-l h-full overflow-y-auto
         transition-all duration-300 ease-in-out
         ${showOutline ? "w-64 opacity-100 translate-x-0" : "w-0 opacity-0 translate-x-10 p-0 border-none"}
-      `}>
+      `}
+      style={{ borderLeftColor: 'var(--background-modifier-border)', backgroundColor: 'var(--bg-primary-alt)' }}
+      >
           <div className="pt-16 px-0 h-full">
             <Outline headings={headings} activeId={activeId || undefined} onClick={scrollToId} />
           </div>

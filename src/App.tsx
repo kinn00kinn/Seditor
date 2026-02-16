@@ -134,11 +134,11 @@ function App() {
               onClick={performSave}
               tooltip="Save (Ctrl+S)"
               icon={<FaSave />}
-              className={isDirty ? "text-red-600 hover:text-red-700 hover:bg-red-50" : ""}
+              className={isDirty ? "!text-red-600" : ""}
             />
-            <div className="text-sm font-medium text-slate-500 ml-2 select-none">
+            <div className="text-sm font-medium ml-2 select-none" style={{ color: 'var(--text-muted)' }}>
               {currentPath ? currentPath.split(/[\\/]/).pop() : "Untitled"}
-              {isDirty && <span className="text-amber-500 ml-1">•</span>}
+              {isDirty && <span className="ml-1" style={{ color: 'rgb(22, 162, 33)' }}>●</span>}
             </div>
           </ToolbarGroup>
           

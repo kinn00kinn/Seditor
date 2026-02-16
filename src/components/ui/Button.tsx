@@ -22,17 +22,17 @@ export const Button: React.FC<CombinedProps> = ({
   ...props
 }) => {
   const baseStyles =
-    "flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed select-none";
+    "flex items-center justify-center gap-2 px-3 py-2 rounded-none text-sm font-medium transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed select-none";
 
   const variants = {
     ghost: cn(
-      "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-      active && "bg-slate-200 text-slate-900 font-semibold"
+      "hover:bg-[rgba(76,79,105,0.1)]",
+      active && "bg-[rgba(76,79,105,0.15)] font-semibold"
     ),
     primary:
-      "bg-slate-900 text-white hover:bg-slate-800 shadow-sm border border-transparent",
-    danger: "text-red-500 hover:bg-red-50 hover:text-red-700",
-    outline: "border border-slate-200 text-slate-700 hover:bg-slate-50",
+      "text-white shadow-sm border border-transparent",
+    danger: "text-red-500 hover:bg-red-50/50 hover:text-red-700",
+    outline: "border hover:bg-[rgba(76,79,105,0.06)]",
   };
 
   return (
@@ -41,7 +41,14 @@ export const Button: React.FC<CombinedProps> = ({
       whileTap={{ scale: 0.96 }}
       className={cn(baseStyles, variants[variant], className)}
       title={tooltip}
-      {...(props as any)} // Cast to any to avoid complex type intersection issues with framer-motion
+      style={
+        variant === "primary"
+          ? { backgroundColor: "rgb(22, 162, 33)" }
+          : variant === "outline"
+          ? { borderColor: "var(--background-modifier-border)", color: "var(--text-normal)" }
+          : { color: "var(--text-muted)" }
+      }
+      {...(props as any)}
     >
       {icon && <span className="text-lg">{icon}</span>}
       {children}
