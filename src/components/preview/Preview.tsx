@@ -197,7 +197,8 @@ export const Preview: React.FC<PreviewProps> = ({ content }) => {
       <div className="flex-1 overflow-y-auto preview-scroll-container px-8 py-8 transition-all duration-300">
         <div 
           ref={previewRef}
-          className={`markdown-preview-view prose prose-slate max-w-3xl ${showOutline ? "mr-4" : "mx-auto"} ml-auto dark:prose-invert prose-headings:scroll-mt-20 pb-32`} 
+          className={`markdown-preview-view prose max-w-3xl ${showOutline ? "mr-4" : "mx-auto"} ml-auto prose-headings:scroll-mt-20 pb-32`} 
+          style={{ color: '#1e1e2e' }}
         >
           <ReactMarkdown
             remarkPlugins={[

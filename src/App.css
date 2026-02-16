@@ -323,6 +323,27 @@ pre[class*="language-"] {
   overflow-wrap: break-word !important;
 }
 
+/* Force readable text color on all prose elements */
+.prose,
+.prose p,
+.prose li,
+.prose ol,
+.prose ul,
+.prose strong,
+.prose em,
+.prose td,
+.prose th,
+.prose dd,
+.prose dt,
+.prose figcaption,
+.prose blockquote {
+  color: #1e1e2e !important;
+}
+
+.prose strong {
+  color: #111 !important;
+}
+
 /* Table overflow wrapper */
 .table-overflow-wrapper {
   overflow-x: auto;
