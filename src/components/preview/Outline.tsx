@@ -21,29 +21,40 @@ export const Outline: React.FC<OutlineProps> = ({
 
   return (
     <div className="h-full px-4">
-      <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-        Outline
+      <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-3">
+        目次
       </h3>
-      <ul className="space-y-1">
-        {headings.map((h) => (
-          <li
-            key={h.id}
-            className={`text-sm transition-colors duration-200 ${
-              activeId === h.id
-                ? "text-blue-600 font-medium"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-            style={{ paddingLeft: `${(h.level - 1) * 8}px` }}
-          >
-            <button
-              onClick={() => onClick(h.id)}
-              className="text-left w-full truncate focus:outline-none"
-              title={h.text}
+      <ul className="space-y-0.5">
+        {headings.map((h) => {
+          const isActive = activeId === h.id;
+          return (
+            <li
+              key={h.id}
+              className="relative"
             >
-              {h.text}
-            </button>
-          </li>
-        ))}
+              {/* Active indicator line */}
+              {isActive && (
+                <div className="absolute left-0 top-1 bottom-1 w-[2px] bg-blue-500 rounded-full" />
+              )}
+              <button
+                onClick={() => onClick(h.id)}
+                className={`
+                  text-left w-full truncate focus:outline-none
+                  text-[13px] leading-relaxed py-1 rounded-md
+                  transition-colors duration-150
+                  ${isActive
+                    ? "text-blue-600 font-medium pl-3"
+                    : "text-slate-500 hover:text-slate-800 hover:bg-slate-100/60 pl-3"
+                  }
+                `}
+                style={{ paddingLeft: `${Math.max(12, (h.level - 1) * 12)}px` }}
+                title={h.text}
+              >
+                {h.text}
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

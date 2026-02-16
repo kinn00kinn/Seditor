@@ -24,6 +24,25 @@
     /* slate-400 */
     --text-muted: #64748b;
     /* slate-500 */
+
+    /* Zenn-style Code Theme */
+    --code-bg: #f6f8fa;
+    --code-border: #e3e8ee;
+    --code-header-bg: #edf0f4;
+    --code-text: #24292f;
+    --code-comment: #6e7781;
+    --code-keyword: #cf222e;
+    --code-string: #0a3069;
+    --code-function: #8250df;
+    --code-number: #0550ae;
+    --code-operator: #cf222e;
+    --code-class: #953800;
+    --code-punctuation: #24292f;
+    --code-property: #0550ae;
+    --code-tag: #116329;
+    --code-attr: #0550ae;
+    --code-builtin: #0550ae;
+    --code-boolean: #0550ae;
   }
 
   body {
@@ -82,4 +101,329 @@
 .directive.warning p {
   margin: 0;
   color: #854d0e;
+}
+
+/* ========================================
+   Zenn-style Syntax Highlighting (Light)
+   ======================================== */
+
+/* Override Prism defaults completely */
+code[class*="language-"],
+pre[class*="language-"] {
+  color: var(--code-text) !important;
+  background: none !important;
+  text-shadow: none !important;
+  font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace !important;
+  font-size: 0.875rem !important;
+  line-height: 1.7 !important;
+  direction: ltr;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  tab-size: 2;
+  hyphens: none;
+}
+
+pre[class*="language-"] {
+  overflow: auto;
+}
+
+/* Tokens */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: var(--code-comment) !important;
+  font-style: italic;
+}
+
+.token.namespace {
+  opacity: 0.7;
+}
+
+.token.string,
+.token.template-string,
+.token.attr-value {
+  color: var(--code-string) !important;
+}
+
+.token.punctuation {
+  color: var(--code-punctuation) !important;
+}
+
+.token.operator {
+  color: var(--code-operator) !important;
+  background: none !important;
+}
+
+.token.entity,
+.token.url,
+.token.symbol,
+.token.number,
+.token.boolean,
+.token.variable,
+.token.constant,
+.token.regex {
+  color: var(--code-number) !important;
+}
+
+.token.atrule,
+.token.keyword,
+.token.control,
+.token.directive,
+.token.unit {
+  color: var(--code-keyword) !important;
+}
+
+.token.statement,
+.token.selector,
+.token.tag {
+  color: var(--code-tag) !important;
+}
+
+.token.placeholder,
+.token.property,
+.token.attr-name {
+  color: var(--code-attr) !important;
+}
+
+.token.deleted {
+  text-decoration: line-through;
+  color: #cf222e !important;
+}
+
+.token.inserted {
+  border-bottom: 1px dotted #24292f;
+  text-decoration: none;
+  color: #116329 !important;
+}
+
+.token.italic {
+  font-style: italic;
+}
+
+.token.important,
+.token.bold {
+  font-weight: bold;
+}
+
+.token.important {
+  color: var(--code-keyword) !important;
+}
+
+.token.function,
+.token.function-variable {
+  color: var(--code-function) !important;
+}
+
+.token.class-name,
+.token.maybe-class-name {
+  color: var(--code-class) !important;
+}
+
+.token.builtin {
+  color: var(--code-builtin) !important;
+}
+
+/* ========================================
+   Prose Enhancements (Zenn-style)
+   ======================================== */
+
+/* Blockquotes — Zenn style */
+.prose blockquote {
+  border-left: 3px solid #d0d7de !important;
+  background-color: transparent !important;
+  color: #656d76 !important;
+  font-style: normal !important;
+  padding: 0.1em 0 0.1em 1em !important;
+  margin: 1.5em 0 !important;
+}
+
+.prose blockquote p {
+  color: #656d76 !important;
+}
+
+/* Tables — clean Zenn style */
+.prose table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  font-size: 0.875rem !important;
+}
+
+.prose thead th {
+  background-color: #f6f8fa !important;
+  border: 1px solid #d0d7de !important;
+  padding: 0.625rem 1rem !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+  color: #24292f !important;
+}
+
+.prose tbody td {
+  border: 1px solid #d0d7de !important;
+  padding: 0.625rem 1rem !important;
+  color: #24292f !important;
+}
+
+.prose tbody tr:nth-child(even) {
+  background-color: #f6f8fa !important;
+}
+
+/* HR — subtle gradient line */
+.prose hr {
+  border: none !important;
+  height: 1px !important;
+  background: linear-gradient(to right, transparent, #d0d7de 20%, #d0d7de 80%, transparent) !important;
+  margin: 2.5em 0 !important;
+}
+
+/* Images — soft shadow + rounded */
+.prose img {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Links — Zenn style (blue, underline on hover) */
+.prose a {
+  color: #0969da !important;
+  text-decoration: none !important;
+  border-bottom: 1px solid transparent !important;
+  transition: border-color 0.15s ease !important;
+}
+
+.prose a:hover {
+  border-bottom-color: #0969da !important;
+}
+
+/* Long word break */
+.prose {
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Table overflow wrapper */
+.table-overflow-wrapper {
+  overflow-x: auto;
+  margin: 1em 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ========================================
+   Zenn-style Code Block Component
+   ======================================== */
+
+.code-block-wrapper {
+  position: relative;
+  margin: 1.5em 0;
+  border: 1px solid var(--code-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--code-bg);
+}
+
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  background: var(--code-header-bg);
+  border-bottom: 1px solid var(--code-border);
+}
+
+.code-block-lang {
+  font-size: 12px;
+  font-weight: 600;
+  color: #656d76;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.code-block-copy {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #656d76;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.code-block-copy.visible {
+  opacity: 1;
+}
+
+.code-block-copy:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #24292f;
+}
+
+.code-block-pre {
+  margin: 0 !important;
+  padding: 16px 20px !important;
+  background: var(--code-bg) !important;
+  overflow-x: auto;
+  border-radius: 0 !important;
+}
+
+.code-block-code {
+  font-size: 0.855rem !important;
+  font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, monospace !important;
+  line-height: 1.7 !important;
+  color: var(--code-text) !important;
+  background: none !important;
+  padding: 0 !important;
+}
+
+/* ========================================
+   Inline Code — Zenn-style
+   ======================================== */
+
+.inline-code {
+  background-color: #eff1f3 !important;
+  color: #24292f !important;
+  font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, monospace !important;
+  font-size: 0.88em !important;
+  padding: 0.15em 0.4em !important;
+  border-radius: 4px !important;
+  font-weight: 400 !important;
+  border: none !important;
+  word-break: break-all;
+}
+
+/* Override prose default inline code */
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  background-color: #eff1f3 !important;
+  color: #24292f !important;
+  font-weight: 400 !important;
+}
+
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::before,
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::after {
+  content: "" !important;
+}
+
+/* ========================================
+   Link styling
+   ======================================== */
+
+.link-styled {
+  color: #0969da !important;
+  text-decoration: none !important;
+  transition: color 0.15s ease !important;
+}
+
+.link-styled:hover {
+  color: #0550ae !important;
+  text-decoration: underline !important;
 }
