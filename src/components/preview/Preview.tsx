@@ -4,8 +4,8 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
-import mermaid from "mermaid";
 import Prism from "prismjs";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 // Additional plugins
 import remarkGemoji from "remark-gemoji";
@@ -65,13 +65,16 @@ const MermaidBlock: React.FC<{ code: string }> = ({ code }) => {
   const ref = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (ref.current) {
-      const cid = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
-      mermaid.render(cid, code).then(({ svg }) => {
-        if (ref.current) ref.current.innerHTML = svg;
-      }).catch((e) => {
-        if (ref.current) ref.current.innerText = "Mermaid Error";
-        console.error(e);
-      });
+      const cid = `mermaid-${Math.random().toString(36).slice(2, 11)}`;
+      void import("mermaid")
+        .then(({ default: mermaid }) => mermaid.render(cid, code))
+        .then(({ svg }) => {
+          if (ref.current) ref.current.innerHTML = svg;
+        })
+        .catch((e) => {
+          if (ref.current) ref.current.innerText = "Mermaid Error";
+          console.error(e);
+        });
     }
   }, [code]);
   return <div ref={ref} className="my-6 flex justify-center" />;
@@ -255,7 +258,7 @@ export const Preview: React.FC<PreviewProps> = ({ content }) => {
                       if (isExternal) {
                         e.preventDefault();
                         try {
-                          window.open(href, "_blank", "noopener,noreferrer");
+                          void openUrl(href);
                         } catch (err) {
                           console.error("Failed to open link:", err);
                         }

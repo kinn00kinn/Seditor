@@ -7,6 +7,7 @@ const STYLE_ID = "seditor-user-style";
 const DEFAULT_ACCENT = "#16a221";
 const DEFAULT_FONT = "'Inter', system-ui, sans-serif";
 const DEFAULT_FONT_SIZE = 16;
+const DEFAULT_AUTO_SAVE = false;
 
 function hexToRgb(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -93,6 +94,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const [overflowFold, setOverflowFold] = useState<boolean>(
     localStorage.getItem("seditor:overflowFold") === "true"
   );
+  const [autoSave, setAutoSave] = useState<boolean>(
+    localStorage.getItem("seditor:autoSave") === "true"
+  );
 
   // Font picker state
   const [systemFonts, setSystemFonts] = useState<string[]>([]);
@@ -155,12 +159,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     localStorage.setItem("seditor:fontSize", String(fontSize));
     localStorage.setItem("seditor:lineWrap", String(lineWrap));
     localStorage.setItem("seditor:overflowFold", String(overflowFold));
+    localStorage.setItem("seditor:autoSave", String(autoSave));
     localStorage.setItem("seditor:customCss", customCss || "");
     applyTheme(accentColor, fontFamily, fontSize, customCss);
     
     window.dispatchEvent(
       new CustomEvent("seditor:settingsChanged", {
-        detail: { lineWrap, overflowFold },
+        detail: { lineWrap, overflowFold, autoSave },
       })
     );
     onClose();
@@ -173,13 +178,20 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     localStorage.removeItem("seditor:customCss");
     localStorage.removeItem("seditor:lineWrap");
     localStorage.removeItem("seditor:overflowFold");
+    localStorage.removeItem("seditor:autoSave");
     setAccentColor(DEFAULT_ACCENT);
     setFontFamily(DEFAULT_FONT);
     setFontSize(DEFAULT_FONT_SIZE);
     setCustomCss("");
     setLineWrap(false);
     setOverflowFold(false);
+    setAutoSave(DEFAULT_AUTO_SAVE);
     applyTheme(DEFAULT_ACCENT, DEFAULT_FONT, DEFAULT_FONT_SIZE, "");
+    window.dispatchEvent(
+      new CustomEvent("seditor:settingsChanged", {
+        detail: { lineWrap: false, overflowFold: false, autoSave: DEFAULT_AUTO_SAVE },
+      })
+    );
   };
 
   const selectFont = (font: string) => {
@@ -317,6 +329,18 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             />
             <label htmlFor="overflowFold" className="text-sm" style={{ color: 'var(--text-normal)' }}>
               はみ出し折りたたみ
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="autoSave"
+              style={{ accentColor: accentColor }}
+              checked={autoSave}
+              onChange={(e) => setAutoSave(e.target.checked)}
+            />
+            <label htmlFor="autoSave" className="text-sm" style={{ color: 'var(--text-normal)' }}>
+              自動保存
             </label>
           </div>
         </div>

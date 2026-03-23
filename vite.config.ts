@@ -38,5 +38,46 @@ export default defineConfig(() => ({
     minify: !process.env.TAURI_DEBUG ? "esbuild" as const : false,
     // produce sourcemaps for debug builds
     sourcemap: !!process.env.TAURI_DEBUG,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) {
+            return;
+          }
+
+          if (
+            id.includes("react-markdown") ||
+            id.includes("remark-") ||
+            id.includes("rehype-") ||
+            id.includes("unist-util-visit")
+          ) {
+            return "markdown-vendor";
+          }
+
+          if (
+            id.includes("@codemirror") ||
+            id.includes("@lezer") ||
+            id.includes("codemirror")
+          ) {
+            return "editor-vendor";
+          }
+
+          if (
+            id.includes("katex") ||
+            id.includes("prismjs")
+          ) {
+            return "preview-vendor";
+          }
+
+          if (
+            id.includes("react") ||
+            id.includes("framer-motion") ||
+            id.includes("react-icons")
+          ) {
+            return "ui-vendor";
+          }
+        },
+      },
+    },
   },
 }));
