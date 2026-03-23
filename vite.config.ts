@@ -3,9 +3,11 @@ import react from "@vitejs/plugin-react";
 
 
 const host = process.env.TAURI_DEV_HOST;
+const base = process.env.VITE_BASE_PATH || "/";
 
 // https://vite.dev/config/
 export default defineConfig(() => ({
+  base,
   plugins: [react()],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

@@ -59,6 +59,7 @@ npm test
 This repository includes:
 
 - [CI workflow](./.github/workflows/ci.yml)
+- [Main auto release workflow](./.github/workflows/main-release.yml)
 - [Release workflow](./.github/workflows/release.yml)
 - [Release guide](./RELEASE.md)
 
@@ -70,6 +71,12 @@ git push origin v0.2.0
 ```
 
 The `Release` workflow then builds the Tauri app and publishes the GitHub Release automatically.
+
+Automatic publishing on `main`:
+
+- every merge to `main` updates the rolling prerelease `main-latest`
+- Windows `.exe` installer assets are uploaded to that GitHub Release
+- the web build is deployed to GitHub Pages
 
 ### Production build
 

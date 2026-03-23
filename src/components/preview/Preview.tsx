@@ -5,7 +5,6 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
 import Prism from "prismjs";
-import { openPath, openUrl } from "@tauri-apps/plugin-opener";
 
 // Additional plugins
 import remarkGemoji from "remark-gemoji";
@@ -38,6 +37,7 @@ import "prismjs/components/prism-diff";
 
 import { FiCopy, FiCheck, FiSidebar, FiExternalLink } from "react-icons/fi";
 import { resolveLinkPath } from "../../utils/document";
+import { openExternalLink, openLocalPath } from "../../utils/runtime";
 import { Outline } from "./Outline";
 
 interface PreviewProps {
@@ -266,7 +266,7 @@ export const Preview: React.FC<PreviewProps> = ({
                       if (isExternal) {
                         e.preventDefault();
                         try {
-                          await openUrl(href);
+                          await openExternalLink(href);
                         } catch (err) {
                           console.error("Failed to open link:", err);
                         }
@@ -275,7 +275,7 @@ export const Preview: React.FC<PreviewProps> = ({
 
                       e.preventDefault();
                       try {
-                        await openPath(resolveLinkPath(currentPath, href));
+                        await openLocalPath(resolveLinkPath(currentPath, href));
                       } catch (err) {
                         console.error("Failed to open local link:", err);
                       }

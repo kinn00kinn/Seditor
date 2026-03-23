@@ -35,8 +35,8 @@ import { useShortcuts } from "./hooks/useShortcuts";
 import { moveLine } from "./utils/editorUtils";
 import { buildDocumentStats, fileNameFromPath } from "./utils/document";
 import { toggleTaskMarker } from "./utils/document";
+import { revealInFileManager } from "./utils/runtime";
 import { applyPersistedTheme } from "./utils/theme";
-import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import packageJson from "../package.json";
 import "./App.css";
 
@@ -239,7 +239,7 @@ function App() {
                 disabled={!currentPath}
               />
               <Button
-                onClick={() => currentPath && void revealItemInDir(currentPath)}
+                onClick={() => currentPath && void revealInFileManager(currentPath)}
                 tooltip="Open containing folder"
                 icon={<FaFolder />}
                 disabled={!currentPath}

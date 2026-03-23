@@ -28,3 +28,14 @@ You can also open GitHub Actions and run `Release` manually with:
 ## Outputs
 
 The workflow publishes the Tauri release artifacts to the GitHub Release page for the selected tag.
+
+## Automatic main deployment
+
+The repository also includes `Main Release`.
+
+On every merge to `main` it will:
+
+- run checks
+- update the rolling prerelease tag `main-latest`
+- upload the Windows Tauri bundles including `.exe` assets to GitHub Releases
+- deploy the web build to GitHub Pages
