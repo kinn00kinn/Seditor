@@ -34,6 +34,7 @@ import { useFileHandler } from "./hooks/useFileHandler";
 import { useShortcuts } from "./hooks/useShortcuts";
 import { moveLine } from "./utils/editorUtils";
 import { buildDocumentStats, fileNameFromPath } from "./utils/document";
+import { toggleTaskMarker } from "./utils/document";
 import { applyPersistedTheme } from "./utils/theme";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import packageJson from "../package.json";
@@ -358,7 +359,14 @@ function App() {
                     </div>
                   }
                 >
-                  <Preview content={docContent} />
+                  <Preview
+                    content={docContent}
+                    currentPath={currentPath}
+                    onTaskToggle={(taskIndex, checked) => {
+                      setDocContent((current) => toggleTaskMarker(current, taskIndex, checked));
+                      setIsDirty(true);
+                    }}
+                  />
                 </Suspense>
               </motion.div>
             )}
