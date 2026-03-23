@@ -6,6 +6,9 @@ import { addRecentFile, normalizeRecentFiles } from "../utils/document";
 
 const RECENT_FILES_KEY = "seditor:recentFiles";
 const AUTOSAVE_KEY = "seditor:autoSave";
+const LAST_OPEN_FILE_KEY = "seditor:lastOpenFile";
+const RECENT_FILES_ENABLED_KEY = "seditor:rememberRecentFiles";
+const RESTORE_LAST_SESSION_KEY = "seditor:restoreLastSession";
 
 function readRecentFilesFromStorage(): string[] {
   try {
@@ -36,6 +39,12 @@ export function useFileHandler() {
   }, []);
 
   const pushRecentFile = useCallback((path: string) => {
+    localStorage.setItem(LAST_OPEN_FILE_KEY, path);
+
+    if (localStorage.getItem(RECENT_FILES_ENABLED_KEY) === "false") {
+      return;
+    }
+
     setRecentFiles((previous) => {
       const next = addRecentFile(previous, path);
       localStorage.setItem(RECENT_FILES_KEY, JSON.stringify(next));
@@ -88,6 +97,16 @@ export function useFileHandler() {
         const filePath = await invoke<string | null>("get_startup_file");
         if (filePath) {
           await openSpecificFile(filePath, { skipDirtyCheck: true });
+          return;
+        }
+
+        if (localStorage.getItem(RESTORE_LAST_SESSION_KEY) === "false") {
+          return;
+        }
+
+        const lastOpenFile = localStorage.getItem(LAST_OPEN_FILE_KEY);
+        if (lastOpenFile) {
+          await openSpecificFile(lastOpenFile, { skipDirtyCheck: true });
         }
       } catch (error) {
         console.error("Failed to load startup file:", error);
@@ -206,8 +225,27 @@ export function useFileHandler() {
     return () => window.clearTimeout(timer);
   }, [currentPath, docContent, isDirty, saveFile]);
 
+  const clearRecentFiles = useCallback(() => {
+    localStorage.removeItem(RECENT_FILES_KEY);
+    setRecentFiles([]);
+  }, []);
+
+  const createNewFile = useCallback(() => {
+    if (!confirmDiscardIfNeeded()) {
+      return false;
+    }
+
+    setCurrentPath(null);
+    setDocContent("");
+    setIsDirty(false);
+    lastSavedContentRef.current = "";
+    return true;
+  }, [confirmDiscardIfNeeded]);
+
   return {
+    createNewFile,
     currentPath,
+    clearRecentFiles,
     docContent,
     setDocContent,
     isDirty,

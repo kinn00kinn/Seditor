@@ -7,6 +7,7 @@ interface RecentFilesModalProps {
   onClose: () => void;
   recentFiles: string[];
   onOpen: (path: string) => void;
+  onClear: () => void;
 }
 
 export const RecentFilesModal: React.FC<RecentFilesModalProps> = ({
@@ -14,6 +15,7 @@ export const RecentFilesModal: React.FC<RecentFilesModalProps> = ({
   onClose,
   recentFiles,
   onOpen,
+  onClear,
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Recent Files">
@@ -23,6 +25,16 @@ export const RecentFilesModal: React.FC<RecentFilesModalProps> = ({
         </p>
       ) : (
         <div className="space-y-2">
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="text-xs underline"
+              style={{ color: "var(--text-muted)" }}
+              onClick={onClear}
+            >
+              Clear recent files
+            </button>
+          </div>
           {recentFiles.map((path) => (
             <button
               key={path}

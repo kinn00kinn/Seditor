@@ -16,7 +16,8 @@ Seditor is a lightweight desktop Markdown editor built with Tauri, React, and Co
 - Rich preview with GFM, KaTeX, Mermaid, syntax highlighting, and heading outline
 - File association support for `.md`, `.markdown`, and `.txt`
 - Recent files, reload from disk, and unsaved-change protection
-- Auto save, Save As, print / PDF export, search, replace, and line move operations
+- Auto save, session restore, Save As, print / PDF export, search, replace, and line move operations
+- Open containing folder and first-run welcome screen
 - Appearance customization for fonts, accent color, wrapping, and custom CSS
 - Local-first workflow with no cloud dependency
 
@@ -53,6 +54,23 @@ npm run check
 npm test
 ```
 
+## Releases
+
+This repository includes:
+
+- [CI workflow](./.github/workflows/ci.yml)
+- [Release workflow](./.github/workflows/release.yml)
+- [Release guide](./RELEASE.md)
+
+Recommended release flow:
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+The `Release` workflow then builds the Tauri app and publishes the GitHub Release automatically.
+
 ### Production build
 
 ```bash
@@ -66,6 +84,7 @@ Current repository improvements include:
 - startup-file opening fixed on the Tauri side
 - editor content synchronization fixed
 - recent files and auto save added
+- session restore, clear recent files, and open containing folder added
 - reload-from-disk workflow added
 - status bar added
 - Rust unit tests added for startup argument parsing

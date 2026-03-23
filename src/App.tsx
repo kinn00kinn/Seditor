@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { EditorView } from "@codemirror/view";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -7,6 +15,8 @@ import {
   FaCode,
   FaCog,
   FaEye,
+  FaFile,
+  FaFolder,
   FaFolderOpen,
   FaHistory,
   FaPrint,
@@ -17,23 +27,49 @@ import {
 } from "react-icons/fa";
 import { Editor } from "./components/editor/Editor";
 import { Layout } from "./components/layout/Layout";
-import { Preview } from "./components/preview/Preview";
-import { RecentFilesModal } from "./components/RecentFilesModal";
-import { SettingsPanel } from "./components/SettingsPanel";
 import { StatusBar } from "./components/StatusBar";
-import { HelpModal } from "./components/HelpModal";
 import { Button } from "./components/ui/Button";
 import { Toolbar, ToolbarDivider, ToolbarGroup } from "./components/ui/Toolbar";
 import { useFileHandler } from "./hooks/useFileHandler";
 import { useShortcuts } from "./hooks/useShortcuts";
 import { moveLine } from "./utils/editorUtils";
 import { buildDocumentStats, fileNameFromPath } from "./utils/document";
+import { applyPersistedTheme } from "./utils/theme";
+import { revealItemInDir } from "@tauri-apps/plugin-opener";
+import packageJson from "../package.json";
 import "./App.css";
+
+const Preview = lazy(async () => {
+  const module = await import("./components/preview/Preview");
+  return { default: module.Preview };
+});
+
+const RecentFilesModal = lazy(async () => {
+  const module = await import("./components/RecentFilesModal");
+  return { default: module.RecentFilesModal };
+});
+
+const SettingsPanel = lazy(async () => {
+  const module = await import("./components/SettingsPanel");
+  return { default: module.SettingsPanel };
+});
+
+const HelpModal = lazy(async () => {
+  const module = await import("./components/HelpModal");
+  return { default: module.HelpModal };
+});
+
+const WelcomeModal = lazy(async () => {
+  const module = await import("./components/WelcomeModal");
+  return { default: module.WelcomeModal };
+});
 
 function App() {
   const viewRef = useRef<EditorView | null>(null);
   const {
     currentPath,
+    createNewFile,
+    clearRecentFiles,
     docContent,
     setDocContent,
     isDirty,
@@ -50,6 +86,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showRecentFiles, setShowRecentFiles] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const [lineWrapEnabled, setLineWrapEnabled] = useState(
     localStorage.getItem("seditor:lineWrap") === "true"
   );
@@ -87,6 +124,12 @@ function App() {
       setMode("edit");
     }
   }, [openFile]);
+
+  const performNewFile = useCallback(() => {
+    if (createNewFile()) {
+      setMode("edit");
+    }
+  }, [createNewFile]);
 
   const performReload = useCallback(async () => {
     const content = await reloadFromDisk();
@@ -129,6 +172,18 @@ function App() {
   useShortcuts(shortcutActions);
 
   useEffect(() => {
+    applyPersistedTheme();
+  }, []);
+
+  useEffect(() => {
+    const versionKey = `seditor:welcomeSeen:${packageJson.version}`;
+    if (!localStorage.getItem(versionKey)) {
+      setShowWelcome(true);
+      localStorage.setItem(versionKey, "true");
+    }
+  }, []);
+
+  useEffect(() => {
     const handler = (event: Event) => {
       const detail = (event as CustomEvent).detail as
         | { lineWrap?: boolean; overflowFold?: boolean; autoSave?: boolean }
@@ -162,6 +217,11 @@ function App() {
           <Toolbar>
             <ToolbarGroup>
               <Button
+                onClick={performNewFile}
+                tooltip="New file"
+                icon={<FaFile />}
+              />
+              <Button
                 onClick={performOpen}
                 tooltip="Open (Ctrl+O)"
                 icon={<FaFolderOpen />}
@@ -175,6 +235,12 @@ function App() {
                 onClick={performReload}
                 tooltip="Reload from disk"
                 icon={<FaRedo />}
+                disabled={!currentPath}
+              />
+              <Button
+                onClick={() => currentPath && void revealItemInDir(currentPath)}
+                tooltip="Open containing folder"
+                icon={<FaFolder />}
                 disabled={!currentPath}
               />
               <Button
@@ -282,7 +348,18 @@ function App() {
                 exit={{ opacity: 0, x: 10 }}
                 transition={{ duration: 0.2 }}
               >
-                <Preview content={docContent} />
+                <Suspense
+                  fallback={
+                    <div
+                      className="flex h-full items-center justify-center text-sm"
+                      style={{ color: "var(--text-muted)" }}
+                    >
+                      Loading preview...
+                    </div>
+                  }
+                >
+                  <Preview content={docContent} />
+                </Suspense>
               </motion.div>
             )}
           </AnimatePresence>
@@ -296,17 +373,35 @@ function App() {
         </div>
       </Layout>
 
-      <RecentFilesModal
-        isOpen={showRecentFiles}
-        onClose={() => setShowRecentFiles(false)}
-        recentFiles={recentFiles}
-        onOpen={handleOpenRecentFile}
-      />
-      <SettingsPanel
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-      />
-      <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
+      {showRecentFiles && (
+        <Suspense fallback={null}>
+          <RecentFilesModal
+            isOpen={showRecentFiles}
+            onClose={() => setShowRecentFiles(false)}
+            recentFiles={recentFiles}
+            onOpen={handleOpenRecentFile}
+            onClear={clearRecentFiles}
+          />
+        </Suspense>
+      )}
+      {showWelcome && (
+        <Suspense fallback={null}>
+          <WelcomeModal isOpen={showWelcome} onClose={() => setShowWelcome(false)} />
+        </Suspense>
+      )}
+      {showSettings && (
+        <Suspense fallback={null}>
+          <SettingsPanel
+            isOpen={showSettings}
+            onClose={() => setShowSettings(false)}
+          />
+        </Suspense>
+      )}
+      {showHelp && (
+        <Suspense fallback={null}>
+          <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
+        </Suspense>
+      )}
     </>
   );
 }
