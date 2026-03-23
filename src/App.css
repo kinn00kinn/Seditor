@@ -351,6 +351,53 @@ pre[class*="language-"] {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Task lists */
+.prose ul.contains-task-list {
+  list-style: none !important;
+  padding-left: 0 !important;
+}
+
+.prose .preview-task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 0.45rem 0 !important;
+}
+
+.prose .preview-task-item p {
+  margin: 0 !important;
+}
+
+.task-list-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.2rem;
+  flex: 0 0 auto;
+  border: 1.5px solid var(--background-modifier-border);
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+}
+
+.task-list-checkbox:checked {
+  background: #fff;
+  border-color: var(--background-modifier-border);
+}
+
+.task-list-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 0.3rem;
+  top: 0.08rem;
+  width: 0.24rem;
+  height: 0.55rem;
+  border: solid var(--text-normal);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
 /* ========================================
    Code Block Component
    ======================================== */
@@ -430,22 +477,24 @@ pre[class*="language-"] {
    ======================================== */
 
 .inline-code {
-  background-color: var(--code-bg) !important;
+  background-color: transparent !important;
   color: var(--code-text) !important;
   font-family: "源ノ角ゴシック", "JetBrains Mono", "Fira Code", Consolas, monospace !important;
   font-size: 0.88em !important;
-  padding: 0.15em 0.4em !important;
+  padding: 0 !important;
   border-radius: 0 !important;
   font-weight: 400 !important;
-  border: 1px solid var(--code-border) !important;
+  border: none !important;
   word-break: break-all;
 }
 
 /* Override prose defaults */
 .prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-  background-color: var(--code-bg) !important;
+  background-color: transparent !important;
   color: var(--code-text) !important;
   font-weight: 400 !important;
+  border: none !important;
+  padding: 0 !important;
 }
 
 .prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::before,

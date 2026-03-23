@@ -4,7 +4,6 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
-import mermaid from "mermaid";
 import Prism from "prismjs";
 
 // Additional plugins
@@ -37,10 +36,14 @@ import "prismjs/components/prism-sql";
 import "prismjs/components/prism-diff";
 
 import { FiCopy, FiCheck, FiSidebar, FiExternalLink } from "react-icons/fi";
+import { resolveLinkPath } from "../../utils/document";
+import { openExternalLink, openLocalPath } from "../../utils/runtime";
 import { Outline } from "./Outline";
 
 interface PreviewProps {
   content: string;
+  currentPath: string | null;
+  onTaskToggle?: (taskIndex: number, checked: boolean) => void;
 }
 
 type HeadingItem = { id: string; text: string; level: number };
@@ -65,13 +68,16 @@ const MermaidBlock: React.FC<{ code: string }> = ({ code }) => {
   const ref = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (ref.current) {
-      const cid = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
-      mermaid.render(cid, code).then(({ svg }) => {
-        if (ref.current) ref.current.innerHTML = svg;
-      }).catch((e) => {
-        if (ref.current) ref.current.innerText = "Mermaid Error";
-        console.error(e);
-      });
+      const cid = `mermaid-${Math.random().toString(36).slice(2, 11)}`;
+      void import("mermaid")
+        .then(({ default: mermaid }) => mermaid.render(cid, code))
+        .then(({ svg }) => {
+          if (ref.current) ref.current.innerHTML = svg;
+        })
+        .catch((e) => {
+          if (ref.current) ref.current.innerText = "Mermaid Error";
+          console.error(e);
+        });
     }
   }, [code]);
   return <div ref={ref} className="my-6 flex justify-center" />;
@@ -134,11 +140,16 @@ const CodeBlock: React.FC<{
   );
 };
 
-export const Preview: React.FC<PreviewProps> = ({ content }) => {
+export const Preview: React.FC<PreviewProps> = ({
+  content,
+  currentPath,
+  onTaskToggle,
+}) => {
   const previewRef = useRef<HTMLDivElement>(null);
   const [headings, setHeadings] = useState<HeadingItem[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showOutline, setShowOutline] = useState(true);
+  let taskIndex = -1;
 
   useEffect(() => {
     if (!previewRef.current) return;
@@ -234,12 +245,12 @@ export const Preview: React.FC<PreviewProps> = ({ content }) => {
                 );
               },
               a({ node, href, children, ...props }) {
-                const isExternal = href && !href.startsWith("#") && !href.startsWith("/");
+                const isExternal = href && /^(https?:|mailto:|tel:)/.test(href);
                 const isAnchor = href && href.startsWith("#");
                 return (
                   <a
                     href={href}
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       if (!href) return;
                       
                       if (isAnchor) {
@@ -255,10 +266,18 @@ export const Preview: React.FC<PreviewProps> = ({ content }) => {
                       if (isExternal) {
                         e.preventDefault();
                         try {
-                          window.open(href, "_blank", "noopener,noreferrer");
+                          await openExternalLink(href);
                         } catch (err) {
                           console.error("Failed to open link:", err);
                         }
+                        return;
+                      }
+
+                      e.preventDefault();
+                      try {
+                        await openLocalPath(resolveLinkPath(currentPath, href));
+                      } catch (err) {
+                        console.error("Failed to open local link:", err);
                       }
                     }}
                     className="link-styled"
@@ -283,6 +302,39 @@ export const Preview: React.FC<PreviewProps> = ({ content }) => {
                   <div className="table-overflow-wrapper">
                     <table {...props}>{children}</table>
                   </div>
+                );
+              },
+              input({ node, type, checked, disabled, ...props }: any) {
+                if (type !== "checkbox") {
+                  return <input type={type} disabled={disabled} checked={checked} {...props} />;
+                }
+
+                taskIndex += 1;
+                const currentTaskIndex = taskIndex;
+
+                return (
+                  <input
+                    type="checkbox"
+                    className="task-list-checkbox"
+                    checked={Boolean(checked)}
+                    onChange={(event) =>
+                      onTaskToggle?.(currentTaskIndex, event.currentTarget.checked)
+                    }
+                    {...props}
+                  />
+                );
+              },
+              li({ node, className, children, ...props }: any) {
+                const isTaskItem =
+                  typeof className === "string" && className.includes("task-list-item");
+
+                return (
+                  <li
+                    className={isTaskItem ? `${className} preview-task-item` : className}
+                    {...props}
+                  >
+                    {children}
+                  </li>
                 );
               },
               h1: ({ node, ...props }) => <h1 {...props} />,

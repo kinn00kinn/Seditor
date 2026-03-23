@@ -3,9 +3,11 @@ import react from "@vitejs/plugin-react";
 
 
 const host = process.env.TAURI_DEV_HOST;
+const base = process.env.VITE_BASE_PATH || "/";
 
 // https://vite.dev/config/
 export default defineConfig(() => ({
+  base,
   plugins: [react()],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
@@ -38,5 +40,46 @@ export default defineConfig(() => ({
     minify: !process.env.TAURI_DEBUG ? "esbuild" as const : false,
     // produce sourcemaps for debug builds
     sourcemap: !!process.env.TAURI_DEBUG,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) {
+            return;
+          }
+
+          if (
+            id.includes("react-markdown") ||
+            id.includes("remark-") ||
+            id.includes("rehype-") ||
+            id.includes("unist-util-visit")
+          ) {
+            return "markdown-vendor";
+          }
+
+          if (
+            id.includes("@codemirror") ||
+            id.includes("@lezer") ||
+            id.includes("codemirror")
+          ) {
+            return "editor-vendor";
+          }
+
+          if (
+            id.includes("katex") ||
+            id.includes("prismjs")
+          ) {
+            return "preview-vendor";
+          }
+
+          if (
+            id.includes("react") ||
+            id.includes("framer-motion") ||
+            id.includes("react-icons")
+          ) {
+            return "ui-vendor";
+          }
+        },
+      },
+    },
   },
 }));

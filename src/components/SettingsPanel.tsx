@@ -1,58 +1,15 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { Modal } from "./ui/Modal";
 import { Button } from "./ui/Button";
-
-const STYLE_ID = "seditor-user-style";
-
-const DEFAULT_ACCENT = "#16a221";
-const DEFAULT_FONT = "'Inter', system-ui, sans-serif";
-const DEFAULT_FONT_SIZE = 16;
-
-function hexToRgb(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `${r}, ${g}, ${b}`;
-}
-
-function darkenHex(hex: string, amount: number): string {
-  const r = Math.max(0, parseInt(hex.slice(1, 3), 16) - amount);
-  const g = Math.max(0, parseInt(hex.slice(3, 5), 16) - amount);
-  const b = Math.max(0, parseInt(hex.slice(5, 7), 16) - amount);
-  return `rgb(${r}, ${g}, ${b})`;
-}
-
-function applyTheme(accentColor: string, fontFamily: string, fontSize: number, customCss: string) {
-  let el = document.getElementById(STYLE_ID) as HTMLStyleElement | null;
-  const rgb = hexToRgb(accentColor);
-  const darker = darkenHex(accentColor, 25);
-
-  const css = `
-    :root {
-      --accent: ${accentColor};
-      --accent-light: rgba(${rgb}, 0.15);
-      --accent-hover: ${darker};
-      --interactive-accent: ${accentColor};
-      --text-accent: ${accentColor};
-      --code-tag: ${accentColor};
-    }
-    .prose, .cm-content {
-      font-family: ${fontFamily} !important;
-      font-size: ${fontSize}px !important;
-    }
-    .cm-selectionBackground, .cm-focused .cm-selectionBackground {
-      background-color: rgba(${rgb}, 0.15) !important;
-    }
-    ${customCss || ""}
-  `;
-
-  if (!el) {
-    el = document.createElement("style");
-    el.id = STYLE_ID;
-    document.head.appendChild(el);
-  }
-  el.innerHTML = css;
-}
+import {
+  applyTheme,
+  DEFAULT_ACCENT,
+  DEFAULT_FONT,
+  DEFAULT_FONT_SIZE,
+} from "../utils/theme";
+const DEFAULT_AUTO_SAVE = false;
+const DEFAULT_REMEMBER_RECENT_FILES = true;
+const DEFAULT_RESTORE_LAST_SESSION = true;
 
 // Fallback fonts in case Local Font Access API is unavailable
 const FALLBACK_FONTS = [
@@ -93,6 +50,15 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const [overflowFold, setOverflowFold] = useState<boolean>(
     localStorage.getItem("seditor:overflowFold") === "true"
   );
+  const [autoSave, setAutoSave] = useState<boolean>(
+    localStorage.getItem("seditor:autoSave") === "true"
+  );
+  const [rememberRecentFiles, setRememberRecentFiles] = useState<boolean>(
+    localStorage.getItem("seditor:rememberRecentFiles") !== "false"
+  );
+  const [restoreLastSession, setRestoreLastSession] = useState<boolean>(
+    localStorage.getItem("seditor:restoreLastSession") !== "false"
+  );
 
   // Font picker state
   const [systemFonts, setSystemFonts] = useState<string[]>([]);
@@ -103,6 +69,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
   // Load system fonts
   useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
     const loadFonts = async () => {
       try {
         // Local Font Access API (Chromium / Tauri WebView2)
@@ -125,10 +95,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
       setSystemFonts(FALLBACK_FONTS);
     };
     loadFonts();
-  }, []);
+  }, [isOpen]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
     const handler = (e: MouseEvent) => {
       if (fontDropdownRef.current && !fontDropdownRef.current.contains(e.target as Node)) {
         setShowFontDropdown(false);
@@ -136,18 +110,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  }, [isOpen]);
 
-  // Filtered fonts
   const filteredFonts = useMemo(() => {
     if (!fontSearch) return systemFonts;
     const q = fontSearch.toLowerCase();
     return systemFonts.filter((f) => f.toLowerCase().includes(q));
   }, [systemFonts, fontSearch]);
-
-  useEffect(() => {
-    applyTheme(accentColor, fontFamily, fontSize, customCss);
-  }, []);
 
   const handleApply = () => {
     localStorage.setItem("seditor:accentColor", accentColor);
@@ -155,12 +124,15 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     localStorage.setItem("seditor:fontSize", String(fontSize));
     localStorage.setItem("seditor:lineWrap", String(lineWrap));
     localStorage.setItem("seditor:overflowFold", String(overflowFold));
+    localStorage.setItem("seditor:autoSave", String(autoSave));
+    localStorage.setItem("seditor:rememberRecentFiles", String(rememberRecentFiles));
+    localStorage.setItem("seditor:restoreLastSession", String(restoreLastSession));
     localStorage.setItem("seditor:customCss", customCss || "");
     applyTheme(accentColor, fontFamily, fontSize, customCss);
     
     window.dispatchEvent(
       new CustomEvent("seditor:settingsChanged", {
-        detail: { lineWrap, overflowFold },
+        detail: { lineWrap, overflowFold, autoSave, rememberRecentFiles, restoreLastSession },
       })
     );
     onClose();
@@ -173,13 +145,30 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     localStorage.removeItem("seditor:customCss");
     localStorage.removeItem("seditor:lineWrap");
     localStorage.removeItem("seditor:overflowFold");
+    localStorage.removeItem("seditor:autoSave");
+    localStorage.removeItem("seditor:rememberRecentFiles");
+    localStorage.removeItem("seditor:restoreLastSession");
     setAccentColor(DEFAULT_ACCENT);
     setFontFamily(DEFAULT_FONT);
     setFontSize(DEFAULT_FONT_SIZE);
     setCustomCss("");
     setLineWrap(false);
     setOverflowFold(false);
+    setAutoSave(DEFAULT_AUTO_SAVE);
+    setRememberRecentFiles(DEFAULT_REMEMBER_RECENT_FILES);
+    setRestoreLastSession(DEFAULT_RESTORE_LAST_SESSION);
     applyTheme(DEFAULT_ACCENT, DEFAULT_FONT, DEFAULT_FONT_SIZE, "");
+    window.dispatchEvent(
+      new CustomEvent("seditor:settingsChanged", {
+        detail: {
+          lineWrap: false,
+          overflowFold: false,
+          autoSave: DEFAULT_AUTO_SAVE,
+          rememberRecentFiles: DEFAULT_REMEMBER_RECENT_FILES,
+          restoreLastSession: DEFAULT_RESTORE_LAST_SESSION,
+        },
+      })
+    );
   };
 
   const selectFont = (font: string) => {
@@ -317,6 +306,42 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             />
             <label htmlFor="overflowFold" className="text-sm" style={{ color: 'var(--text-normal)' }}>
               はみ出し折りたたみ
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="autoSave"
+              style={{ accentColor: accentColor }}
+              checked={autoSave}
+              onChange={(e) => setAutoSave(e.target.checked)}
+            />
+            <label htmlFor="autoSave" className="text-sm" style={{ color: 'var(--text-normal)' }}>
+              自動保存
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="rememberRecentFiles"
+              style={{ accentColor: accentColor }}
+              checked={rememberRecentFiles}
+              onChange={(e) => setRememberRecentFiles(e.target.checked)}
+            />
+            <label htmlFor="rememberRecentFiles" className="text-sm" style={{ color: 'var(--text-normal)' }}>
+              最近使ったファイルを記録
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="restoreLastSession"
+              style={{ accentColor: accentColor }}
+              checked={restoreLastSession}
+              onChange={(e) => setRestoreLastSession(e.target.checked)}
+            />
+            <label htmlFor="restoreLastSession" className="text-sm" style={{ color: 'var(--text-normal)' }}>
+              前回のファイルを起動時に復元
             </label>
           </div>
         </div>

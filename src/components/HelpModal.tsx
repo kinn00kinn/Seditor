@@ -49,6 +49,10 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             <li><strong>Code Blocks:</strong> Syntax highlighting and copy button.</li>
             <li><strong>Folding:</strong> Click the gutter arrows to fold code sections or headings.</li>
             <li><strong>Line Moving:</strong> Use the arrow buttons in toolbar to move lines up/down.</li>
+            <li><strong>Recent Files:</strong> Reopen documents quickly from the recent files list.</li>
+            <li><strong>Session Restore:</strong> Resume the last file automatically on startup.</li>
+            <li><strong>Reload from Disk:</strong> Refresh the current file when it changed outside the app.</li>
+            <li><strong>Open Containing Folder:</strong> Reveal the current file in Explorer/Finder.</li>
             <li><strong>Export:</strong> Print to PDF via Ctrl+P.</li>
           </ul>
         </section>
@@ -61,6 +65,9 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                 <li>Font Family & Size</li>
                 <li>Line Wrapping</li>
                 <li>Overflow Folding (Horizontal clip)</li>
+                <li>Auto Save</li>
+                <li>Recent Files history</li>
+                <li>Session Restore</li>
                 <li>Custom CSS injection</li>
             </ul>
           </div>

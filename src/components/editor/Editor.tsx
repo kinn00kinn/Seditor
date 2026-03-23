@@ -81,7 +81,7 @@ export const Editor: React.FC<EditorProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
-
+  const applyingExternalChangeRef = useRef(false);
   const lineWrappingComp = useRef(new Compartment());
 
   useEffect(() => {
@@ -124,7 +124,7 @@ export const Editor: React.FC<EditorProps> = ({
           ...historyKeymap,
         ]),
         EditorView.updateListener.of((u) => {
-          if (u.docChanged) {
+          if (u.docChanged && !applyingExternalChangeRef.current) {
             onChange(u.state.doc.toString());
           }
         }),
@@ -141,6 +141,28 @@ export const Editor: React.FC<EditorProps> = ({
       viewRef.current = null;
     };
   }, []); // Run once on mount
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) {
+      return;
+    }
+
+    const currentContent = view.state.doc.toString();
+    if (currentContent === content) {
+      return;
+    }
+
+    applyingExternalChangeRef.current = true;
+    view.dispatch({
+      changes: {
+        from: 0,
+        to: view.state.doc.length,
+        insert: content,
+      },
+    });
+    applyingExternalChangeRef.current = false;
+  }, [content]);
 
   useEffect(() => {
     if (viewRef.current) {
