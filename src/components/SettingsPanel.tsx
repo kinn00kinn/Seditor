@@ -8,6 +8,7 @@ import {
   DEFAULT_FONT_SIZE,
 } from "../utils/theme";
 const DEFAULT_AUTO_SAVE = false;
+const DEFAULT_WORD_WRAP = true;
 const DEFAULT_REMEMBER_RECENT_FILES = true;
 const DEFAULT_RESTORE_LAST_SESSION = true;
 
@@ -28,6 +29,21 @@ interface SettingsPanelProps {
   onClose: () => void;
 }
 
+function readStoredWordWrap() {
+  const storedOverflowFold = localStorage.getItem("seditor:overflowFold");
+  const storedLineWrap = localStorage.getItem("seditor:lineWrap");
+
+  if (storedOverflowFold !== null) {
+    return storedOverflowFold === "true";
+  }
+
+  if (storedLineWrap !== null) {
+    return storedLineWrap === "true";
+  }
+
+  return DEFAULT_WORD_WRAP;
+}
+
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   isOpen,
   onClose,
@@ -45,8 +61,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     localStorage.getItem("seditor:customCss") || ""
   );
   const [overflowFold, setOverflowFold] = useState<boolean>(
-    localStorage.getItem("seditor:overflowFold") === "true" ||
-      localStorage.getItem("seditor:lineWrap") === "true"
+    readStoredWordWrap
   );
   const [autoSave, setAutoSave] = useState<boolean>(
     localStorage.getItem("seditor:autoSave") === "true"
@@ -169,7 +184,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     setFontFamily(DEFAULT_FONT);
     setFontSize(DEFAULT_FONT_SIZE);
     setCustomCss("");
-    setOverflowFold(false);
+    setOverflowFold(DEFAULT_WORD_WRAP);
     setAutoSave(DEFAULT_AUTO_SAVE);
     setRememberRecentFiles(DEFAULT_REMEMBER_RECENT_FILES);
     setRestoreLastSession(DEFAULT_RESTORE_LAST_SESSION);
@@ -177,8 +192,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     window.dispatchEvent(
       new CustomEvent("seditor:settingsChanged", {
         detail: {
-          lineWrap: false,
-          overflowFold: false,
+          lineWrap: DEFAULT_WORD_WRAP,
+          overflowFold: DEFAULT_WORD_WRAP,
           autoSave: DEFAULT_AUTO_SAVE,
           rememberRecentFiles: DEFAULT_REMEMBER_RECENT_FILES,
           restoreLastSession: DEFAULT_RESTORE_LAST_SESSION,

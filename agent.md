@@ -31,7 +31,7 @@ npm run tauri dev
 - Settings are persisted in `localStorage` under `seditor:*` keys.
 - Avoid permission prompts on initial render. Ask for OS-level capabilities only from an explicit user action.
 - Preview outline should remain stable and predictable. Avoid width-zero animated sidebars or layout shifts that make the reading area jump unexpectedly.
-- Long-line handling must not hide content. Prefer wrapping or horizontal scroll over clipping.
+- Long-line handling must not hide content. Word wrap is on by default and should use CodeMirror line wrapping, matching VS Code-style right-edge wrapping.
 
 ## Docs Summary
 

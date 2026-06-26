@@ -63,8 +63,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             Access settings via the cog icon to customize:
             <ul className="list-disc list-inside ml-2 mt-1 space-y-1">
                 <li>Font Family & Size</li>
-                <li>Line Wrapping</li>
-                <li>Overflow Folding (Horizontal clip)</li>
+                <li>VS Code-style word wrap</li>
                 <li>Auto Save</li>
                 <li>Recent Files history</li>
                 <li>Session Restore</li>
