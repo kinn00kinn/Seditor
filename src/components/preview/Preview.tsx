@@ -167,6 +167,7 @@ export const Preview: React.FC<PreviewProps> = ({
         };
       });
       setHeadings(items);
+      setActiveId((current) => current || items[0]?.id || null);
     }, 100);
 
     const handleScroll = () => {
@@ -196,19 +197,24 @@ export const Preview: React.FC<PreviewProps> = ({
 
   return (
     <div className="flex h-full relative">
-       <button
-        onClick={() => setShowOutline(!showOutline)}
-        className="absolute top-4 right-6 z-10 p-2 rounded-none transition-all backdrop-blur-sm shadow-sm border"
-        style={{ color: 'var(--text-faint)', backgroundColor: 'var(--toolbar-glass)', borderColor: 'var(--toolbar-border)' }}
-        title={showOutline ? "Hide Outline" : "Show Outline"}
+      <button
+        onClick={() => setShowOutline((current) => !current)}
+        className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center border transition-colors"
+        style={{
+          color: showOutline ? "var(--text-normal)" : "var(--text-faint)",
+          backgroundColor: "var(--toolbar-glass)",
+          borderColor: "var(--toolbar-border)",
+        }}
+        aria-pressed={showOutline}
+        title={showOutline ? "目次を隠す" : "目次を表示"}
       >
         <FiSidebar size={16} />
       </button>
 
-      <div className="flex-1 overflow-y-auto preview-scroll-container px-8 py-8 transition-all duration-300">
+      <div className="flex-1 overflow-y-auto preview-scroll-container px-8 py-8">
         <div 
           ref={previewRef}
-          className={`markdown-preview-view prose max-w-3xl ${showOutline ? "mr-4" : "mx-auto"} ml-auto prose-headings:scroll-mt-20 pb-32`} 
+          className="markdown-preview-view prose mx-auto max-w-3xl prose-headings:scroll-mt-20 pb-32"
           style={{ color: '#1e1e2e' }}
         >
           <ReactMarkdown
@@ -350,17 +356,19 @@ export const Preview: React.FC<PreviewProps> = ({
         </div>
       </div>
       
-      <div className={`
-        flex-shrink-0 border-l h-full overflow-y-auto
-        transition-all duration-300 ease-in-out
-        ${showOutline ? "w-64 opacity-100 translate-x-0" : "w-0 opacity-0 translate-x-10 p-0 border-none"}
-      `}
-      style={{ borderLeftColor: 'var(--background-modifier-border)', backgroundColor: 'var(--bg-primary-alt)' }}
-      >
+      {showOutline && headings.length > 0 && (
+        <aside
+          className="h-full w-64 flex-shrink-0 overflow-y-auto border-l"
+          style={{
+            borderLeftColor: "var(--background-modifier-border)",
+            backgroundColor: "var(--bg-primary-alt)",
+          }}
+        >
           <div className="pt-16 px-0 h-full">
             <Outline headings={headings} activeId={activeId || undefined} onClick={scrollToId} />
           </div>
-      </div>
+        </aside>
+      )}
     </div>
   );
 };

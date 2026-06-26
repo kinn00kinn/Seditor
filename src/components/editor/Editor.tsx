@@ -83,6 +83,7 @@ export const Editor: React.FC<EditorProps> = ({
   const viewRef = useRef<EditorView | null>(null);
   const applyingExternalChangeRef = useRef(false);
   const lineWrappingComp = useRef(new Compartment());
+  const shouldWrapLines = lineWrap || overflowFold;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -103,7 +104,7 @@ export const Editor: React.FC<EditorProps> = ({
             return el;
           }
         }),
-        lineWrappingComp.current.of(lineWrap ? EditorView.lineWrapping : []),
+        lineWrappingComp.current.of(shouldWrapLines ? EditorView.lineWrapping : []),
         history(),
         markdown(),
         editorTheme,
@@ -168,23 +169,16 @@ export const Editor: React.FC<EditorProps> = ({
     if (viewRef.current) {
       viewRef.current.dispatch({
         effects: lineWrappingComp.current.reconfigure(
-          lineWrap ? EditorView.lineWrapping : []
+          shouldWrapLines ? EditorView.lineWrapping : []
         ),
       });
     }
-  }, [lineWrap]);
-
-  useEffect(() => {
-    if (containerRef.current) {
-        if (overflowFold) containerRef.current.classList.add("overflow-fold");
-        else containerRef.current.classList.remove("overflow-fold");
-    }
-  }, [overflowFold]);
+  }, [shouldWrapLines]);
 
   return (
     <div 
       ref={containerRef} 
-      className={`h-full w-full text-left ${overflowFold ? "overflow-fold" : ""}`} 
+      className="h-full w-full text-left"
     />
   );
 };

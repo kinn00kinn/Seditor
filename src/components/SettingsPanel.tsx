@@ -8,6 +8,7 @@ import {
   DEFAULT_FONT_SIZE,
 } from "../utils/theme";
 const DEFAULT_AUTO_SAVE = false;
+const DEFAULT_WORD_WRAP = true;
 const DEFAULT_REMEMBER_RECENT_FILES = true;
 const DEFAULT_RESTORE_LAST_SESSION = true;
 
@@ -28,6 +29,21 @@ interface SettingsPanelProps {
   onClose: () => void;
 }
 
+function readStoredWordWrap() {
+  const storedOverflowFold = localStorage.getItem("seditor:overflowFold");
+  const storedLineWrap = localStorage.getItem("seditor:lineWrap");
+
+  if (storedOverflowFold !== null) {
+    return storedOverflowFold === "true";
+  }
+
+  if (storedLineWrap !== null) {
+    return storedLineWrap === "true";
+  }
+
+  return DEFAULT_WORD_WRAP;
+}
+
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   isOpen,
   onClose,
@@ -44,11 +60,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const [customCss, setCustomCss] = useState<string>(
     localStorage.getItem("seditor:customCss") || ""
   );
-  const [lineWrap, setLineWrap] = useState<boolean>(
-    localStorage.getItem("seditor:lineWrap") === "true"
-  );
   const [overflowFold, setOverflowFold] = useState<boolean>(
-    localStorage.getItem("seditor:overflowFold") === "true"
+    readStoredWordWrap
   );
   const [autoSave, setAutoSave] = useState<boolean>(
     localStorage.getItem("seditor:autoSave") === "true"
@@ -64,37 +77,50 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const [systemFonts, setSystemFonts] = useState<string[]>([]);
   const [fontSearch, setFontSearch] = useState("");
   const [showFontDropdown, setShowFontDropdown] = useState(false);
+  const [fontPermissionError, setFontPermissionError] = useState("");
+  const [systemFontsLoaded, setSystemFontsLoaded] = useState(false);
   const fontDropdownRef = useRef<HTMLDivElement>(null);
   const fontInputRef = useRef<HTMLInputElement>(null);
 
-  // Load system fonts
   useEffect(() => {
-    if (!isOpen) {
-      return;
+    setSystemFonts(FALLBACK_FONTS);
+  }, []);
+
+  const loadSystemFonts = async () => {
+    setFontPermissionError("");
+
+    try {
+      if ("queryLocalFonts" in window) {
+        const fonts = await (window as any).queryLocalFonts();
+        const familySet = new Set<string>();
+        for (const font of fonts) {
+          familySet.add(font.family);
+        }
+        const sorted = Array.from(familySet).sort((a, b) =>
+          a.localeCompare(b, "ja")
+        );
+        setSystemFonts(sorted.length > 0 ? sorted : FALLBACK_FONTS);
+        setSystemFontsLoaded(true);
+        setShowFontDropdown(true);
+        return;
+      }
+    } catch {
+      setFontPermissionError("権限が許可されなかったため、標準フォント一覧を表示しています。");
     }
 
-    const loadFonts = async () => {
-      try {
-        // Local Font Access API (Chromium / Tauri WebView2)
-        if ("queryLocalFonts" in window) {
-          const fonts = await (window as any).queryLocalFonts();
-          const familySet = new Set<string>();
-          for (const font of fonts) {
-            familySet.add(font.family);
-          }
-          const sorted = Array.from(familySet).sort((a, b) =>
-            a.localeCompare(b, "ja")
-          );
-          setSystemFonts(sorted);
-          return;
-        }
-      } catch {
-        // Permission denied or API not available
-      }
-      // Fallback
+    setSystemFontsLoaded(false);
+    setSystemFonts(FALLBACK_FONTS);
+    setShowFontDropdown(true);
+  };
+
+  useEffect(() => {
+    if (!isOpen) {
+      setShowFontDropdown(false);
+      setFontSearch("");
+      setFontPermissionError("");
       setSystemFonts(FALLBACK_FONTS);
-    };
-    loadFonts();
+      setSystemFontsLoaded(false);
+    }
   }, [isOpen]);
 
   // Close dropdown when clicking outside
@@ -122,7 +148,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     localStorage.setItem("seditor:accentColor", accentColor);
     localStorage.setItem("seditor:fontFamily", fontFamily);
     localStorage.setItem("seditor:fontSize", String(fontSize));
-    localStorage.setItem("seditor:lineWrap", String(lineWrap));
+    localStorage.setItem("seditor:lineWrap", String(overflowFold));
     localStorage.setItem("seditor:overflowFold", String(overflowFold));
     localStorage.setItem("seditor:autoSave", String(autoSave));
     localStorage.setItem("seditor:rememberRecentFiles", String(rememberRecentFiles));
@@ -132,7 +158,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     
     window.dispatchEvent(
       new CustomEvent("seditor:settingsChanged", {
-        detail: { lineWrap, overflowFold, autoSave, rememberRecentFiles, restoreLastSession },
+        detail: {
+          lineWrap: overflowFold,
+          overflowFold,
+          autoSave,
+          rememberRecentFiles,
+          restoreLastSession,
+        },
       })
     );
     onClose();
@@ -152,8 +184,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     setFontFamily(DEFAULT_FONT);
     setFontSize(DEFAULT_FONT_SIZE);
     setCustomCss("");
-    setLineWrap(false);
-    setOverflowFold(false);
+    setOverflowFold(DEFAULT_WORD_WRAP);
     setAutoSave(DEFAULT_AUTO_SAVE);
     setRememberRecentFiles(DEFAULT_REMEMBER_RECENT_FILES);
     setRestoreLastSession(DEFAULT_RESTORE_LAST_SESSION);
@@ -161,8 +192,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     window.dispatchEvent(
       new CustomEvent("seditor:settingsChanged", {
         detail: {
-          lineWrap: false,
-          overflowFold: false,
+          lineWrap: DEFAULT_WORD_WRAP,
+          overflowFold: DEFAULT_WORD_WRAP,
           autoSave: DEFAULT_AUTO_SAVE,
           rememberRecentFiles: DEFAULT_REMEMBER_RECENT_FILES,
           restoreLastSession: DEFAULT_RESTORE_LAST_SESSION,
@@ -222,22 +253,32 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <label className="block text-sm font-medium mb-1.5" style={labelStyle}>
             フォント
           </label>
-          <input
-            ref={fontInputRef}
-            type="text"
-            className="w-full px-3 py-2 border focus:outline-none text-sm"
-            style={{ ...inputStyle, fontFamily: fontFamily }}
-            value={showFontDropdown ? fontSearch : fontFamily}
-            placeholder="フォント名を検索..."
-            onFocus={() => {
-              setShowFontDropdown(true);
-              setFontSearch("");
-            }}
-            onChange={(e) => {
-              setFontSearch(e.target.value);
-              if (!showFontDropdown) setShowFontDropdown(true);
-            }}
-          />
+          <div className="flex gap-2">
+            <input
+              ref={fontInputRef}
+              type="text"
+              className="min-w-0 flex-1 px-3 py-2 border focus:outline-none text-sm"
+              style={{ ...inputStyle, fontFamily: fontFamily }}
+              value={showFontDropdown ? fontSearch : fontFamily}
+              placeholder="フォント名を検索..."
+              onFocus={() => {
+                setShowFontDropdown(true);
+                setFontSearch("");
+              }}
+              onChange={(e) => {
+                setFontSearch(e.target.value);
+                if (!showFontDropdown) setShowFontDropdown(true);
+              }}
+            />
+            <Button variant="outline" type="button" onClick={loadSystemFonts}>
+              {systemFontsLoaded ? "再読込" : "読込"}
+            </Button>
+          </div>
+          {fontPermissionError && (
+            <p className="mt-1 text-xs" style={{ color: "var(--text-faint)" }}>
+              {fontPermissionError}
+            </p>
+          )}
           {showFontDropdown && (
             <div
               className="absolute left-0 right-0 mt-1 border overflow-y-auto z-50"
@@ -287,25 +328,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              id="lineWrap"
-              style={{ accentColor: accentColor }}
-              checked={lineWrap}
-              onChange={(e) => setLineWrap(e.target.checked)}
-            />
-            <label htmlFor="lineWrap" className="text-sm" style={{ color: 'var(--text-normal)' }}>
-              行の折り返し
-            </label>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
               id="overflowFold"
               style={{ accentColor: accentColor }}
               checked={overflowFold}
               onChange={(e) => setOverflowFold(e.target.checked)}
             />
             <label htmlFor="overflowFold" className="text-sm" style={{ color: 'var(--text-normal)' }}>
-              はみ出し折りたたみ
+              右端で折り返し (VS Code Word Wrap)
             </label>
           </div>
           <div className="flex items-center gap-2">

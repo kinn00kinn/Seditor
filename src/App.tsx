@@ -65,6 +65,24 @@ const WelcomeModal = lazy(async () => {
   return { default: module.WelcomeModal };
 });
 
+const DEFAULT_WORD_WRAP = true;
+const WELCOME_SEEN_KEY = "seditor:welcomeSeen";
+
+function readStoredWordWrap() {
+  const storedOverflowFold = localStorage.getItem("seditor:overflowFold");
+  const storedLineWrap = localStorage.getItem("seditor:lineWrap");
+
+  if (storedOverflowFold !== null) {
+    return storedOverflowFold === "true";
+  }
+
+  if (storedLineWrap !== null) {
+    return storedLineWrap === "true";
+  }
+
+  return DEFAULT_WORD_WRAP;
+}
+
 function App() {
   const viewRef = useRef<EditorView | null>(null);
   const {
@@ -89,10 +107,10 @@ function App() {
   const [showRecentFiles, setShowRecentFiles] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [lineWrapEnabled, setLineWrapEnabled] = useState(
-    localStorage.getItem("seditor:lineWrap") === "true"
+    readStoredWordWrap
   );
   const [overflowFoldEnabled, setOverflowFoldEnabled] = useState(
-    localStorage.getItem("seditor:overflowFold") === "true"
+    readStoredWordWrap
   );
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(
     localStorage.getItem("seditor:autoSave") === "true"
@@ -178,9 +196,14 @@ function App() {
 
   useEffect(() => {
     const versionKey = `seditor:welcomeSeen:${packageJson.version}`;
-    if (!localStorage.getItem(versionKey)) {
+    if (localStorage.getItem(WELCOME_SEEN_KEY) || localStorage.getItem(versionKey)) {
+      localStorage.setItem(WELCOME_SEEN_KEY, "true");
+      return;
+    }
+
+    if (!localStorage.getItem(WELCOME_SEEN_KEY)) {
       setShowWelcome(true);
-      localStorage.setItem(versionKey, "true");
+      localStorage.setItem(WELCOME_SEEN_KEY, "true");
     }
   }, []);
 

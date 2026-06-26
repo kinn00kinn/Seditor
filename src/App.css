@@ -81,20 +81,6 @@
   background: var(--text-muted);
 }
 
-/* ========================================
-   Editor — Overflow / Fold
-   ======================================== */
-
-.overflow-fold .cm-content {
-  white-space: pre !important;
-  overflow-wrap: normal !important;
-}
-
-.overflow-fold .cm-line {
-  overflow: hidden !important;
-  text-overflow: clip !important;
-}
-
 .fold-icon {
   color: var(--text-faint);
   cursor: pointer;
