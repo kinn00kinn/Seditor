@@ -84,6 +84,9 @@ Automatic publishing on `main`:
 npm run tauri build
 ```
 
+If Windows build tools are not installed locally, run the `CI` workflow from
+GitHub Actions and download the `seditor-windows` artifact instead.
+
 ## Project status
 
 Current repository improvements include:
