@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 
 
 const host = process.env.TAURI_DEV_HOST;
-const base = process.env.VITE_BASE_PATH || "/";
+const base = process.env.VITE_BASE_PATH || (process.env.TAURI_PLATFORM ? "./" : "/");
 
 // https://vite.dev/config/
 export default defineConfig(() => ({
