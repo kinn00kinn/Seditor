@@ -7,8 +7,12 @@ import {
   DEFAULT_FONT,
   DEFAULT_FONT_SIZE,
 } from "../utils/theme";
+import {
+  readWordWrapPreference,
+  resetWordWrapPreference,
+  setWordWrapPreference,
+} from "../utils/preferences";
 const DEFAULT_AUTO_SAVE = false;
-const DEFAULT_WORD_WRAP = true;
 const DEFAULT_REMEMBER_RECENT_FILES = true;
 const DEFAULT_RESTORE_LAST_SESSION = true;
 
@@ -29,21 +33,6 @@ interface SettingsPanelProps {
   onClose: () => void;
 }
 
-function readStoredWordWrap() {
-  const storedOverflowFold = localStorage.getItem("seditor:overflowFold");
-  const storedLineWrap = localStorage.getItem("seditor:lineWrap");
-
-  if (storedOverflowFold !== null) {
-    return storedOverflowFold === "true";
-  }
-
-  if (storedLineWrap !== null) {
-    return storedLineWrap === "true";
-  }
-
-  return DEFAULT_WORD_WRAP;
-}
-
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   isOpen,
   onClose,
@@ -61,7 +50,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     localStorage.getItem("seditor:customCss") || ""
   );
   const [overflowFold, setOverflowFold] = useState<boolean>(
-    readStoredWordWrap
+    readWordWrapPreference
   );
   const [autoSave, setAutoSave] = useState<boolean>(
     localStorage.getItem("seditor:autoSave") === "true"
@@ -148,8 +137,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     localStorage.setItem("seditor:accentColor", accentColor);
     localStorage.setItem("seditor:fontFamily", fontFamily);
     localStorage.setItem("seditor:fontSize", String(fontSize));
-    localStorage.setItem("seditor:lineWrap", String(overflowFold));
-    localStorage.setItem("seditor:overflowFold", String(overflowFold));
+    setWordWrapPreference(overflowFold);
     localStorage.setItem("seditor:autoSave", String(autoSave));
     localStorage.setItem("seditor:rememberRecentFiles", String(rememberRecentFiles));
     localStorage.setItem("seditor:restoreLastSession", String(restoreLastSession));
@@ -175,8 +163,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     localStorage.removeItem("seditor:fontFamily");
     localStorage.removeItem("seditor:fontSize");
     localStorage.removeItem("seditor:customCss");
-    localStorage.removeItem("seditor:lineWrap");
-    localStorage.removeItem("seditor:overflowFold");
     localStorage.removeItem("seditor:autoSave");
     localStorage.removeItem("seditor:rememberRecentFiles");
     localStorage.removeItem("seditor:restoreLastSession");
@@ -184,7 +170,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     setFontFamily(DEFAULT_FONT);
     setFontSize(DEFAULT_FONT_SIZE);
     setCustomCss("");
-    setOverflowFold(DEFAULT_WORD_WRAP);
+    const defaultWordWrap = resetWordWrapPreference();
+    setOverflowFold(defaultWordWrap);
     setAutoSave(DEFAULT_AUTO_SAVE);
     setRememberRecentFiles(DEFAULT_REMEMBER_RECENT_FILES);
     setRestoreLastSession(DEFAULT_RESTORE_LAST_SESSION);
@@ -192,8 +179,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     window.dispatchEvent(
       new CustomEvent("seditor:settingsChanged", {
         detail: {
-          lineWrap: DEFAULT_WORD_WRAP,
-          overflowFold: DEFAULT_WORD_WRAP,
+          lineWrap: defaultWordWrap,
+          overflowFold: defaultWordWrap,
           autoSave: DEFAULT_AUTO_SAVE,
           rememberRecentFiles: DEFAULT_REMEMBER_RECENT_FILES,
           restoreLastSession: DEFAULT_RESTORE_LAST_SESSION,
