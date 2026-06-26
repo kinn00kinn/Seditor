@@ -57,11 +57,26 @@ export default defineConfig(() => ({
           }
 
           if (
-            id.includes("@codemirror") ||
-            id.includes("@lezer") ||
+            id.includes("@codemirror/view") ||
+            id.includes("@codemirror/state")
+          ) {
+            return "editor-core";
+          }
+
+          if (
+            id.includes("@codemirror/language") ||
+            id.includes("@codemirror/lang-markdown") ||
+            id.includes("@lezer")
+          ) {
+            return "editor-language";
+          }
+
+          if (
+            id.includes("@codemirror/commands") ||
+            id.includes("@codemirror/search") ||
             id.includes("codemirror")
           ) {
-            return "editor-vendor";
+            return "editor-tools";
           }
 
           if (
@@ -81,5 +96,6 @@ export default defineConfig(() => ({
         },
       },
     },
+    chunkSizeWarningLimit: 600,
   },
 }));
