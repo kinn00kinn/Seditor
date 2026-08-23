@@ -1,5 +1,7 @@
 # Seditor
 
+**Project page:** https://kinn-kinn.com/projects/seditor/
+
 ![Tauri](https://img.shields.io/badge/Tauri-v2-24C8D5?logo=tauri&logoColor=white)
 ![React](https://img.shields.io/badge/React-v19-61DAFB?logo=react&logoColor=black)
 ![Rust](https://img.shields.io/badge/Rust-stable-000000?logo=rust&logoColor=white)

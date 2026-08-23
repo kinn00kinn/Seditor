@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal } from "./ui/Modal";
+import { openExternalLink } from "../utils/runtime";
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -70,6 +71,17 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                 <li>Custom CSS injection</li>
             </ul>
           </div>
+         </section>
+
+        <section>
+          <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--text-normal)' }}>About Seditor</h3>
+          <button
+            type="button"
+            className="underline"
+            onClick={() => void openExternalLink("https://kinn-kinn.com/projects/seditor/")}
+          >
+            Project page
+          </button>
         </section>
       </div>
     </Modal>
